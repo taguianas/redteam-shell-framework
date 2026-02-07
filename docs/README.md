@@ -1,5 +1,8 @@
 RedTeam Shell Framework
 
+⚠️ PROJECT UNDER CONSTRUCTION > This framework is currently in active development. Some modules  are currently placeholders or partially implemented. Features are subject to change.
+
+
 🛡️ Project Overview
 
 The RedTeam Shell Framework is a lightweight, modular Command & Control (C2) suite developed for educational purposes and authorized security assessments.
