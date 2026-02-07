@@ -1,164 +1,277 @@
-RedTeam Shell Framework
+# 🟥 RedTeam Shell Framework
 
-⚠️ PROJECT UNDER CONSTRUCTION > This framework is currently in active development. Some modules  are currently placeholders or partially implemented. Features are subject to change.
+> ⚠️ **Project Status:** Under Active Development  
+> This framework is currently evolving. Some modules may be placeholders or partially implemented, and features are subject to change.
 
+---
 
-🛡️ Project Overview
+## 🛡️ Overview
 
-The RedTeam Shell Framework is a lightweight, modular Command & Control (C2) suite developed for educational purposes and authorized security assessments.
+**RedTeam Shell Framework** is a lightweight, modular **Command & Control (C2) shell management framework** designed for **educational use** and **authorized security assessments**.
 
-Unlike heavy, dependency-rich C2 frameworks, this tool focuses on minimalism and portability. It leverages standard Unix binaries (nc, socat, openssl, rlwrap) to establish stable, logging-enabled, and encrypted reverse shell connections.
+Unlike heavyweight, dependency-heavy C2 platforms, this framework prioritizes:
 
-Key Objective: To demonstrate the mechanics of shell handling, traffic encryption, and modular bash scripting architecture without relying on opaque, pre-compiled binaries.
+- **Minimalism**
+- **Portability**
+- **Transparency**
 
-🚀 Features
+It leverages standard Unix tools such as `nc`, `socat`, `openssl`, and `rlwrap` to build **stable, logged, and optionally encrypted reverse shells** without relying on opaque or precompiled binaries.
 
-Phase 1: Core Listeners
+🎯 **Primary Goal**  
+To demonstrate:
+- Shell handling mechanics  
+- Traffic encryption concepts  
+- Modular Bash scripting architecture  
 
-Smart Listening: Automates the usage of rlwrap for history and line-editing in raw Netcat shells.
+All while remaining easy to audit, modify, and understand.
 
-Session Logging: Automatically captures session data to the logs/ directory with timestamps.
+---
 
-Dependency Handling: Checks for required tools and prompts for installation if missing.
+## 🚀 Features
 
-Phase 2: Payload Generation
+### Phase 1 – Core Listeners
+- **Smart Listener Mode**  
+  Automatically wraps Netcat with `rlwrap` for line editing and command history.
+- **Session Logging**  
+  Captures all shell interactions with timestamps in the `logs/` directory.
+- **Dependency Validation**  
+  Detects required tools and prompts for installation if missing.
 
-Dynamic Generation: Creates payloads on-the-fly based on user-supplied LHOST/LPORT.
+### Phase 2 – Payload Generation
+- **Dynamic Payload Creation**  
+  Generates payloads on demand using user-supplied `LHOST` and `LPORT`.
+- **Multi-Language Support**
+  - Bash (`/dev/tcp`)
+  - Python3 (PTY-spawned)
+  - Netcat (`mkfifo`)
+  - PHP (`exec`)
+- **Export Options**  
+  Save generated payloads directly as executable files.
 
-Multi-Language Support:
+### Phase 3 – Encryption Layer
+- **TLS Encapsulation**  
+  Wraps shell traffic using `socat` and `OpenSSL`.
+- **Automated Certificate Handling**  
+  Generates ephemeral self-signed certificates (`.pem`) automatically.
+- **Traffic Obfuscation**  
+  Prevents cleartext inspection by encapsulating commands in SSL/TLS.
 
-Bash (/dev/tcp)
+---
 
-Python3 (PTY-spawned)
+## 🏗️ Architecture
 
-Netcat (mkfifo)
+The framework follows a **Controller–Module design pattern**, ensuring maintainability and extensibility.
 
-PHP (exec)
-
-Export options: Save payloads directly to executable files.
-
-Phase 3: Encryption Layer
-
-Traffic Obfuscation: Implements socat with OpenSSL to wrap shell traffic in TLS.
-
-Certificate Automation: Auto-generates ephemeral self-signed certificates (.pem) for encrypted listeners.
-
-Evasion: Bypasses basic cleartext traffic analysis by encapsulating commands in SSL.
-
-🏗️ Architecture
-
-The framework follows a Controller-Module design pattern to ensure maintainability and scalability.
-
+```text
 redteam-shell-framework/
-├── shellmaster.sh       # [Controller] Main Event Loop & UI
-├── modules/             # [Logic Layer] Stateless functional modules
-│   ├── listeners.sh     # Wraps nc/rlwrap logic
-│   ├── shells.sh        # Payload template factory
-│   ├── encrypt.sh       # OpenSSL/Socat abstraction
-│   ├── logger.sh        # Session recording
+├── shellmaster.sh       # Controller: Main UI & event loop
+├── modules/             # Logic layer (stateless modules)
+│   ├── listeners.sh     # Netcat / rlwrap abstraction
+│   ├── shells.sh        # Payload factory
+│   ├── encrypt.sh       # OpenSSL / socat logic
+│   ├── logger.sh        # Session logging
 │   └── ...
-├── logs/                # [Data Layer] Session artifacts
-└── setup_env.sh         # [Init] Environment bootstrapper
+├── logs/                # Session artifacts
+└── setup_env.sh         # Environment bootstrapper
 
 
-Engineering Highlights
+### Engineering Highlights
 
-Separation of Concerns: The UI logic (shellmaster.sh) is completely decoupled from the execution logic (modules/).
+- **Separation of Concerns**  
+  User interface logic (`shellmaster.sh`) is fully decoupled from execution logic (`modules/`), improving maintainability and extensibility.
+- **Input Validation**  
+  IP addresses and ports are sanitized before execution to reduce runtime errors and misuse.
+- **Defensive Coding**  
+  Uses safe module sourcing to prevent framework crashes if a module is missing or corrupted.
 
-Input Sanitization: User inputs (Ports/IPs) are validated before execution to prevent script errors.
+---
 
-Defensive Coding: Uses safe_source functions to prevent the framework from crashing if a module file is missing or corrupted.
+## 🛠️ Installation & Usage
 
-🛠️ Installation & Usage
+### Prerequisites
 
-Prerequisites
+The framework relies only on common Linux networking utilities:
 
-The framework relies on standard Linux networking tools:
+- `netcat` (`nc`)
+- `socat`
+- `openssl`
+- `rlwrap` *(optional but strongly recommended)*
 
-netcat (nc)
+---
 
-socat
+### Quick Start
 
-openssl
-
-rlwrap (optional, but recommended for shell stability)
-
-Quick Start
-
-Clone the Repository
-
-git clone [https://github.com/yourusername/redteam-shell-framework.git](https://github.com/yourusername/redteam-shell-framework.git)
+#### 1️⃣ Clone the Repository
+```bash
+git clone https://github.com/taguianas/redteam-shell-framework.git
 cd redteam-shell-framework
 
 
-Initialize Environment
-Run the setup script to create directory structures and check dependencies.
 
+#### 2️⃣ Initialize the Environment
+
+Run the setup script to prepare directory structures and verify dependencies:
+
+```bash
 chmod +x setup_env.sh
 ./setup_env.sh
 
 
-Run the Framework
+#### 3️⃣ Run the Framework
 
+Start the main controller interface:
+
+```bash
 ./shellmaster.sh
 
 
-📖 Usage Guide
 
-1. Starting a Listener
+## 📖 Usage Guide
 
-Select Option 1 from the main menu.
+This section provides an overview of the primary operational workflows supported by the RedTeam Shell Framework.
 
-Standard Listener: Uses raw nc.
+---
 
-Smart Listener: Wraps nc with rlwrap to allow arrow-key usage and command history in the remote shell.
+### 1. Starting a Listener
 
-2. Generating a Payload
+Listeners are used to receive incoming reverse shell connections.
 
-Select Option 2 from the main menu.
+1. From the main menu, select **Option 1**.
+2. Choose the desired listener type:
 
-Input your IP and Port.
+   - **Standard Listener**  
+     Launches a raw Netcat listener.
 
-Choose the target language (e.g., Python3).
+   - **Smart Listener**  
+     Wraps Netcat with `rlwrap`, enabling:
+     - Command history
+     - Line editing
+     - Improved shell usability
 
-The tool generates the one-liner and offers to save it to a script file.
+3. Once started, all session activity is automatically logged to the `logs/` directory with timestamps.
 
-3. Encrypted Shells (Socat)
+---
 
-Select Option 3 from the main menu.
+### 2. Generating a Payload
 
-Generate Cert: Creates a bind.pem key/cert pair in tmp/.
+Payloads are generated dynamically based on user-supplied network parameters.
 
-Start Listener: Starts a socat listener expecting SSL traffic.
+1. From the main menu, select **Option 2**.
+2. Provide the following information:
+   - Local IP address (`LHOST`)
+   - Listening port (`LPORT`)
+3. Select a payload language from the available options:
+   - Bash (`/dev/tcp`)
+   - Python3 (PTY-spawned)
+   - Netcat (`mkfifo`)
+   - PHP (`exec`)
+4. The framework outputs a ready-to-use one-liner payload.
+5. You may optionally save the generated payload to an executable file for later use.
 
-Generate Payload: Provides the specific socat command required on the victim machine to connect back using encryption.
+---
 
-🚧 Roadmap
+### 3. Encrypted Shells (Socat + TLS)
 
-[x] Phase 1: Core Listeners & Logging
+Encrypted shells provide transport-layer security by encapsulating shell traffic in SSL/TLS.
 
-[x] Phase 2: Payload Generator
+1. From the main menu, select **Option 3**.
+2. Choose one of the following actions:
+   - **Generate Certificate**  
+     Automatically creates a temporary self-signed certificate (`.pem`).
+   - **Start Encrypted Listener**  
+     Launches a `socat` listener configured to accept TLS-encrypted connections.
+   - **Generate Encrypted Payload**  
+     Outputs the corresponding encrypted reverse shell command for the target system.
+3. When used together, these options establish an encrypted communication channel, preventing cleartext traffic inspection.
 
-[x] Phase 3: Encryption (SSL/TLS)
+---
 
-[ ] Phase 4: File Transfer Module (Upload/Download automation)
+### 4. Session Logging
 
-[ ] Phase 5: Pivot/Relay (Chaining socat for internal network access)
+- All active shell sessions are logged automatically.
+- Logs are stored in the `logs/` directory.
+- Each session log includes timestamps for improved traceability and analysis.
 
-[ ] Phase 6: Automated PTY Upgrades (Magic sequence injection)
+---
 
-⚖️ Legal Disclaimer
+### 5. Exiting the Framework
 
-Usage of the RedTeam Shell Framework for attacking targets without prior mutual consent is illegal. This project is created for:
+- Use the menu exit option to safely terminate the framework.
+- Active listeners should be stopped manually if running in separate terminals.
+## 🚧 Roadmap
 
-Educational purposes (Learning bash scripting, networking protocols, and system administration).
+The following roadmap outlines the planned development phases and future enhancements for the RedTeam Shell Framework.
 
-Authorized Red Team operations and penetration testing engagements.
+### ✅ Phase 1 – Core Listeners & Logging
+- Raw Netcat listener support
+- Smart listener mode using `rlwrap`
+- Automatic session logging with timestamps
+- Dependency checks and environment validation
 
-Portfolio demonstration of security tool development.
+### ✅ Phase 2 – Payload Generation
+- Dynamic payload generation using `LHOST` / `LPORT`
+- Multi-language payload support:
+  - Bash (`/dev/tcp`)
+  - Python3 (PTY-spawned)
+  - Netcat (`mkfifo`)
+  - PHP (`exec`)
+- Optional payload export to executable files
 
-The developer assumes no liability and is not responsible for any misuse or damage caused by this program.
+### ⏳ Phase 3 – Encryption Layer (SSL/TLS)
+- TLS-wrapped shell communication using `socat`
+- Automatic self-signed certificate generation
+- Encrypted listener support
+- Encrypted payload generation for target hosts
 
-Author: [Your Name]
+### ⏳ Phase 4 – File Transfer Module
+- Upload and download automation
+- Support for multiple transfer methods (Netcat / Socat)
+- Integrity verification of transferred files
+- Logging of file transfer activity
 
-License: MIT
+### ⏳ Phase 5 – Pivoting & Relay Capabilities
+- Traffic relaying using chained `socat` instances
+- Internal network pivoting support
+- Port forwarding and listener redirection
+- Multi-hop session management
+
+### ⏳ Phase 6 – Automated PTY Upgrades
+- Automatic detection of non-interactive shells
+- PTY upgrade automation (Python / script-based)
+- Terminal stabilization (TTY, job control)
+- Improved shell usability across environments
+
+---
+
+> Roadmap items are subject to change as the framework evolves and new features are introduced.
+
+## ⚖️ Legal Disclaimer
+
+⚠️ **Unauthorized use of this framework is illegal.**
+
+The **RedTeam Shell Framework** is provided strictly for:
+
+- Educational and research purposes  
+- Authorized Red Team operations  
+- Approved penetration testing engagements  
+- Security tooling development and demonstration  
+
+Any use of this framework against systems, networks, or applications **without explicit prior permission** from the system owner is strictly prohibited and may violate local, national, or international laws.
+
+The developer assumes **no responsibility or liability** for any misuse, damage, or legal consequences resulting from the use of this software.  
+By using this project, you agree that you are solely responsible for ensuring compliance with all applicable laws and regulations.
+
+## 👤 Author
+
+**Anas TAGUI**  
+
+This project was developed as part of ongoing research into shell handling, encrypted communications, and modular Bash-based offensive security tooling.
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License**.
+
+You are free to use, modify, and distribute this software in accordance with the terms of the MIT License.  
+See the `LICENSE` file for full license details.
