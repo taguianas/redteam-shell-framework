@@ -1,0 +1,21 @@
+Ignore logs and session recordings
+
+logs/*
+!logs/.gitkeep
+
+Ignore temporary keys and certs
+
+tmp/*
+!tmp/.gitkeep
+
+Ignore generated payloads (optional, but good practice)
+
+*.sh
+.py
+!shellmaster.sh
+!setup_env.sh
+!modules/.sh
+
+Ignore system files
+
+.DS_Store
