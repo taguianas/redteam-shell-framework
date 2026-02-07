@@ -104,8 +104,9 @@ The framework relies only on common Linux networking utilities:
 #### 1️⃣ Clone the Repository
 ```bash
 git clone https://github.com/taguianas/redteam-shell-framework.git
-cd redteam-shell-framework
 
+cd redteam-shell-framework
+```
 
 
 #### 2️⃣ Initialize the Environment
@@ -115,7 +116,7 @@ Run the setup script to prepare directory structures and verify dependencies:
 ```bash
 chmod +x setup_env.sh
 ./setup_env.sh
-
+```
 
 #### 3️⃣ Run the Framework
 
@@ -123,7 +124,7 @@ Start the main controller interface:
 
 ```bash
 ./shellmaster.sh
-
+```
 
 
 ## 📖 Usage Guide
