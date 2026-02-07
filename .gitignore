@@ -1,21 +1,29 @@
-Ignore logs and session recordings
+--- Logs and Session Data ---
 
 logs/*
 !logs/.gitkeep
 
-Ignore temporary keys and certs
+--- Temporary Files (Keys/Certs) ---
 
 tmp/*
 !tmp/.gitkeep
 
-Ignore generated payloads (optional, but good practice)
-
-*.sh
-.py
-!shellmaster.sh
-!setup_env.sh
-!modules/.sh
-
-Ignore system files
+--- System Files ---
 
 .DS_Store
+Thumbs.db
+
+--- Generated Payloads (Safety Rule) ---
+
+
+
+*.sh
+*.py
+*.php
+
+--- EXCEPTION: Track Our Source Code ---
+
+
+!shellmaster.sh
+!setup_env.sh
+!modules/*.sh
