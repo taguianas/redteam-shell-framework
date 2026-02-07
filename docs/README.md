@@ -73,7 +73,7 @@ redteam-shell-framework/
 │   └── ...
 ├── logs/                # Session artifacts
 └── setup_env.sh         # Environment bootstrapper
-
+```
 
 ### Engineering Highlights
 
