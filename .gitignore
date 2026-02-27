@@ -26,4 +26,6 @@ Thumbs.db
 
 !shellmaster.sh
 !setup_env.sh
+!config.sh
+!utils.sh
 !modules/*.sh
