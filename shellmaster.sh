@@ -17,7 +17,6 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # --- Self-Check & Initialization ---
-# This ensures the script doesn't crash if setup_env.sh wasn't run
 if [ ! -d "$MODULE_DIR" ]; then
     echo -e "${YELLOW}[!] First run detected. Initializing directories...${NC}"
     mkdir -p "$MODULE_DIR" "$LOG_DIR" "docs" "tmp"
@@ -27,12 +26,20 @@ fi
 safe_source() {
     local file="$MODULE_DIR/$1"
     if [ -f "$file" ]; then
-        source "$file"
+        source "$file" 2>/dev/null || echo "[!] Warning: Could not source $file"
     else
-        # Create empty placeholder if missing to prevent "No such file" errors
         touch "$file"
     fi
 }
+
+# --- Source Core Files ---
+if [ -f "utils.sh" ]; then
+    source "utils.sh"
+fi
+
+if [ -f "config.sh" ]; then
+    source "config.sh"
+fi
 
 # --- Import Modules ---
 safe_source "listeners.sh"
@@ -63,29 +70,28 @@ print_banner() {
 handle_choice() {
     case $1 in
         1)
-            # Calls function in modules/listeners.sh (Phase 1)
+            
             echo -e "\n${GREEN}[+] Loading Listener Module...${NC}"
             sleep 0.5
-            if type listener_menu &>/dev/null; then
-                listener_menu
+            if type listeners_menu &>/dev/null; then
+                listeners_menu
             else
                 echo -e "${YELLOW}[!] Listener module error: function not found.${NC}"
             fi 
             ;;
         2)
-            # Calls function in modules/shells.sh (Phase 2)
-            # NOW ACTIVE
+            
             echo -e "\n${GREEN}[+] Loading Payload Generator...${NC}"
             sleep 0.5
-            if type payload_menu &>/dev/null; then
-                payload_menu
+            if type shells_menu &>/dev/null; then
+                shells_menu
             else
                 echo -e "${YELLOW}[!] Payload module error: function not found.${NC}"
                 echo -e "    Make sure modules/shells.sh is populated."
             fi
             ;;
         3)
-            # PHASE 3 NOW ACTIVE
+            
             echo -e "\n${GREEN}[+] Loading Encryption Module...${NC}"
             sleep 0.5
             if type encrypt_menu &>/dev/null; then 
@@ -96,15 +102,30 @@ handle_choice() {
             ;;
         4)
             echo -e "\n${GREEN}[+] Loading Transfer Module...${NC}"
-            echo -e "${YELLOW}[!] Module under construction (Phase 4)${NC}"
+            sleep 0.5
+            if type transfer_menu &>/dev/null; then
+                transfer_menu
+            else
+                echo -e "${YELLOW}[!] Transfer module error: function not found.${NC}"
+            fi
             ;;
         5)
             echo -e "\n${GREEN}[+] Loading Relay Module...${NC}"
-            echo -e "${YELLOW}[!] Module under construction (Phase 5)${NC}"
+            sleep 0.5
+            if type relay_menu &>/dev/null; then
+                relay_menu
+            else
+                echo -e "${YELLOW}[!] Relay module error: function not found.${NC}"
+            fi
             ;;
         6)
             echo -e "\n${GREEN}[+] Loading PTY Upgrade Tools...${NC}"
-            echo -e "${YELLOW}[!] Module under construction (Phase 6)${NC}"
+            sleep 0.5
+            if type upgrade_menu &>/dev/null; then
+                upgrade_menu
+            else
+                echo -e "${YELLOW}[!] Upgrade module error: function not found.${NC}"
+            fi
             ;;
         99)
             echo -e "\n${RED}[!] Exiting Framework.${NC}"
