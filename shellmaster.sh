@@ -48,7 +48,6 @@ safe_source "encrypt.sh"
 safe_source "relay.sh"
 safe_source "transfer.sh"
 safe_source "upgrade.sh"
-safe_source "logger.sh"
 
 # --- UI Functions ---
 

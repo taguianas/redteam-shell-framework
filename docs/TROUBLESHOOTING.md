@@ -584,10 +584,9 @@ bash: YmFz...: command not found
    htop
    ```
 
-2. **Disable logging temporarily:**
+2. **Reduce log verbosity:**
    ```bash
-   # In config.sh
-   export LOG_LEVEL="OFF"
+   export LOG_LEVEL="ERROR"
    ```
 
 3. **Reduce verbosity:**

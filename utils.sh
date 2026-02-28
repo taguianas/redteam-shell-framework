@@ -182,23 +182,6 @@ list_sessions() {
 }
 
 ################################################################################
-# Spinner and progress
-################################################################################
-
-spinner() {
-    local pid=$!
-    local spin=( '|' '/' '-' '\' )
-    local i=0
-    
-    while kill -0 $pid 2>/dev/null; do
-        i=$(( (i+1) % 4 ))
-        echo -ne "\r${spin[$i]} "
-        sleep 0.1
-    done
-    echo -ne "\r"
-}
-
-################################################################################
 # Input validation
 ################################################################################
 
@@ -240,18 +223,3 @@ ensure_dir() {
     fi
 }
 
-################################################################################
-# Error handling
-################################################################################
-
-handle_error() {
-    local line_number="$1"
-    local error_msg="$2"
-    error_msg "Error at line $line_number: $error_msg"
-    log_error "Error at line $line_number: $error_msg"
-    return 1
-}
-
-trap_error() {
-    handle_error "$?" "Script execution failed"
-}

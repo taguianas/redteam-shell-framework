@@ -5,7 +5,7 @@
 # Handling SSL/TLS Shells using Socat/OpenSSL
 # ==========================================
 
-CERT_DIR="tmp"
+CERT_DIR="${CERTS_DIR:-tmp}"
 CERT_NAME="bind.pem"
 
 check_dependencies() {
