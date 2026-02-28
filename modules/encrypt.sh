@@ -70,19 +70,27 @@ gen_socat_payload() {
 }
 
 encrypt_menu() {
-    echo -e "${CYAN}--- Encryption Module (Socat/SSL) ---${NC}"
-    echo "1. Generate New Certificate"
-    echo "2. Start Encrypted Listener (Server)"
-    echo "3. Generate Encrypted Payload (Client)"
-    echo "4. Back"
-    echo ""
-    read -p "Select > " e_choice
-    
-    case $e_choice in
-        1) generate_cert ;;
-        2) start_socat_listener ;;
-        3) gen_socat_payload ;;
-        4) return ;;
-        *) echo "Invalid option" ;;
-    esac
+    while true; do
+        clear
+        echo ""
+        echo "$(color_cyan '╔══════════════════════════════════════════╗')"
+        echo "$(color_cyan '║')     ENCRYPTION MENU  (Socat/SSL)        $(color_cyan '║')"
+        echo "$(color_cyan '╚══════════════════════════════════════════╝')"
+        echo ""
+        echo "  $(color_yellow '1.')  Generate New Certificate"
+        echo "  $(color_yellow '2.')  Start Encrypted Listener (Server)"
+        echo "  $(color_yellow '3.')  Generate Encrypted Payload (Client)"
+        echo "  $(color_yellow '4.')  Back to Main Menu"
+        echo ""
+        echo -n "Select option: "
+        read -r e_choice
+
+        case $e_choice in
+            1) generate_cert ;;
+            2) start_socat_listener ;;
+            3) gen_socat_payload ;;
+            4) break ;;
+            *) error_msg "Invalid option"; sleep 2 ;;
+        esac
+    done
 }
