@@ -24,7 +24,7 @@ A modular, lightweight Bash framework for managing reverse shells, encrypted lis
 
 ## Overview
 
-RedTeam Shell Framework is a **controller–module CLI** built entirely in Bash. It wraps standard Unix networking tools (`nc`, `socat`, `openssl`, `ssh`) into an interactive menu-driven interface, enabling operators to:
+RedTeam Shell Framework is a **controller–module CLI** built entirely in Bash. It wraps standard Unix networking tools  (`nc`, `socat`, `openssl`, `ssh`) into an interactive menu-driven interface, enabling operators to:
 
 - Catch and manage reverse/bind shell connections
 - Generate payloads for Bash, PowerShell, and Python
@@ -72,8 +72,7 @@ redteam-shell-framework/
 │   ├── API.md              # Function reference for all modules
 │   ├── EXAMPLES.md         # Real-world usage scenarios
 │   ├── SECURITY.md         # Security model and threat considerations
-│   ├── TROUBLESHOOTING.md  # Common issues and fixes
-│   └── DOCUMENTATION_INDEX.md
+│   └── TROUBLESHOOTING.md  # Common issues and fixes
 │
 ├── logs/                   # Runtime logs and session records (git-ignored)
 ├── certs/                  # Generated certificates (git-ignored)
@@ -129,7 +128,7 @@ cd redteam-shell-framework
 bash shellmaster.sh
 ```
 
-### Option 2 — wget (no Git required)
+### Option 2 — wget 
 
 ```bash
 wget https://github.com/taguianas/redteam-shell-framework/archive/refs/heads/main.zip
@@ -138,7 +137,7 @@ cd redteam-shell-framework-main
 bash shellmaster.sh
 ```
 
-### Option 3 — curl (no Git required)
+### Option 3 — curl 
 
 ```bash
 curl -L https://github.com/taguianas/redteam-shell-framework/archive/refs/heads/main.zip -o framework.zip
