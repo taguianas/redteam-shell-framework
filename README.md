@@ -113,17 +113,36 @@ sudo apt update && sudo apt install -y netcat-traditional socat openssl rlwrap o
 
 ## Installation
 
+### Option 1 — Git (recommended)
+
 ```bash
-# Clone the repository
 git clone https://github.com/taguianas/redteam-shell-framework.git
 cd redteam-shell-framework
-
-# Make scripts executable
-chmod +x shellmaster.sh config.sh utils.sh modules/*.sh
-
-# Launch
+chmod +x shellmaster.sh modules/*.sh
 ./shellmaster.sh
 ```
+
+### Option 2 — Direct download (no Git required)
+
+```bash
+wget https://github.com/taguianas/redteam-shell-framework/archive/refs/heads/main.zip
+unzip main.zip
+cd redteam-shell-framework-main
+chmod +x shellmaster.sh modules/*.sh
+./shellmaster.sh
+```
+
+### Option 3 — curl
+
+```bash
+curl -L https://github.com/taguianas/redteam-shell-framework/archive/refs/heads/main.zip -o framework.zip
+unzip framework.zip
+cd redteam-shell-framework-main
+chmod +x shellmaster.sh modules/*.sh
+./shellmaster.sh
+```
+
+> `git` is only needed to clone the repository. The framework itself has no dependency on it — it runs with standard Bash and Unix tools.
 
 ---
 
