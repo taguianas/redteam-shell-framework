@@ -1,0 +1,5 @@
+# Force LF line endings for all shell scripts — prevents CRLF breaking bash
+*.sh    text eol=lf
+*.md    text eol=lf
+*.txt   text eol=lf
+*.json  text eol=lf
