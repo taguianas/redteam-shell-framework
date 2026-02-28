@@ -1,12 +1,36 @@
+<<<<<<< HEAD
 # 🧨 RedTeam Shell Framework
+=======
+<div align="center">
+>>>>>>> 82f7739 (changes 1)
 
-A modular, lightweight Bash framework for managing reverse shells, encrypted listeners, payload generation, file transfers, and network pivoting — built for authorized penetration testing and security research.
+# 🔴 ShellMaster
+
+> **Next-Gen Red Team Shell Management Framework**
+
+> [📋 Documentation](docs/) &nbsp;&nbsp;|&nbsp;&nbsp; [⚙️ Installation & Setup](#installation)
+
+<br/>
+
+![Status](https://img.shields.io/badge/status-active-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Privacy](https://img.shields.io/badge/use-authorized%20only-red)
+![Maintained](https://img.shields.io/badge/maintained-yes-green)
+![Built With](https://img.shields.io/badge/built%20with-Bash-1f425f)
+
+</div>
+
+---
+
+## 📖 About The Project
+
+**ShellMaster** is a professional-grade, modular Bash framework for managing reverse shells, encrypted listeners, payload generation, file transfers, and network pivoting — built for authorized penetration testing and security research.
 
 > **Legal Notice:** This tool is intended exclusively for authorized security assessments, red team exercises, and educational use in controlled environments. Unauthorized use against any system is illegal. See [Legal Disclaimer](#legal-disclaimer).
 
 ---
 
-## Table of Contents
+## 📋 Table of Contents
 
 - [Overview](#overview)
 - [Features](#features)
@@ -22,9 +46,9 @@ A modular, lightweight Bash framework for managing reverse shells, encrypted lis
 
 ---
 
-## Overview
+## 🔍 Overview
 
-RedTeam Shell Framework is a **controller–module CLI** built entirely in Bash. It wraps standard Unix networking tools  (`nc`, `socat`, `openssl`, `ssh`) into an interactive menu-driven interface, enabling operators to:
+ShellMaster is a **controller–module CLI** built entirely in Bash. It wraps standard Unix networking tools (`nc`, `socat`, `openssl`, `ssh`) into an interactive menu-driven interface, enabling operators to:
 
 - Catch and manage reverse/bind shell connections
 - Generate payloads for Bash, PowerShell, and Python
@@ -37,7 +61,7 @@ All activity is logged to `logs/framework.log` for audit purposes.
 
 ---
 
-## Features
+## ⚡ Features
 
 | Module | Capability |
 |--------|------------|
@@ -51,7 +75,7 @@ All activity is logged to `logs/framework.log` for audit purposes.
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 redteam-shell-framework/
@@ -85,7 +109,7 @@ redteam-shell-framework/
 
 ---
 
-## Requirements
+## 🛠️ Requirements
 
 ### Required
 
@@ -118,7 +142,7 @@ sudo yum install -y ncat socat openssl rlwrap openssh-clients python3
 
 ---
 
-## Installation
+## ⚙️ Installation
 
 ### Option 1 — Git (recommended)
 
@@ -128,7 +152,7 @@ cd redteam-shell-framework
 bash shellmaster.sh
 ```
 
-### Option 2 — wget 
+### Option 2 — wget
 
 ```bash
 wget https://github.com/taguianas/redteam-shell-framework/archive/refs/heads/main.zip
@@ -137,7 +161,7 @@ cd redteam-shell-framework-main
 bash shellmaster.sh
 ```
 
-### Option 3 — curl 
+### Option 3 — curl
 
 ```bash
 curl -L https://github.com/taguianas/redteam-shell-framework/archive/refs/heads/main.zip -o framework.zip
@@ -159,7 +183,7 @@ The framework requires a **Unix Bash environment**. On Windows, use **Git Bash**
 
 ---
 
-## Usage
+## 🚀 Usage
 
 Run the main controller from the project root:
 
@@ -198,7 +222,7 @@ The interactive menu will load:
 
 ---
 
-## Modules
+## 🧩 Modules
 
 ### 1. Listeners
 
@@ -285,7 +309,7 @@ Step-by-step commands to upgrade a limited reverse shell to a fully interactive 
 
 ---
 
-## Documentation
+## 📚 Documentation
 
 | File | Contents |
 |------|----------|
@@ -297,7 +321,7 @@ Step-by-step commands to upgrade a limited reverse shell to a fully interactive 
 
 ---
 
-## Legal Disclaimer
+## ⚖️ Legal Disclaimer
 
 This framework is provided for **educational purposes** and **authorized security testing only**.
 
@@ -311,7 +335,7 @@ Permitted uses:
 
 ---
 
-## Author
+## 👤 Author
 
 **Anas TAGUI**
 
@@ -319,6 +343,6 @@ Developed as part of ongoing research into shell handling, traffic encryption, a
 
 ---
 
-## License
+## 📄 License
 
 This project is licensed under the **MIT License**. See [`LICENSE`](LICENSE) for full details.
