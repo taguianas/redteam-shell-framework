@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-# 🧨 RedTeam Shell Framework
-=======
-<div align="center">
->>>>>>> 82f7739 (changes 1)
-
 # 🔴 ShellMaster
 
 > **Next-Gen Red Team Shell Management Framework**
