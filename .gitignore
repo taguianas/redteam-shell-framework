@@ -27,4 +27,4 @@ Thumbs.db
 !shellmaster.sh
 !config.sh
 !utils.sh
-!modules/*.sh
+!modules/*.sh.claude/
