@@ -49,6 +49,33 @@ safe_source "relay.sh"
 safe_source "transfer.sh"
 safe_source "upgrade.sh"
 
+# --- Dependency Check ---
+check_dependencies() {
+    local missing=()
+    local tools_optional=("socat" "rlwrap" "openssl" "scp" "python3")
+
+    if ! command -v nc &>/dev/null && ! command -v ncat &>/dev/null && ! command -v netcat &>/dev/null; then
+        missing+=("netcat (nc / ncat / netcat)")
+    fi
+
+    for tool in "${tools_optional[@]}"; do
+        if ! command -v "$tool" &>/dev/null; then
+            missing+=("$tool")
+        fi
+    done
+
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        echo -e "\n${YELLOW}[!] Missing optional tools — some features may not work:${NC}"
+        for t in "${missing[@]}"; do
+            echo -e "    ${YELLOW}⚠${NC}  $t"
+        done
+        echo ""
+        sleep 2
+    fi
+}
+
+check_dependencies
+
 # --- UI Functions ---
 
 print_banner() {

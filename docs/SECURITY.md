@@ -36,8 +36,9 @@ This document outlines the security model, threat scenarios, and best practices 
 ### Logging & Audit
 ✅ **Structured Logging** - JSON-formatted audit trails
 ✅ **Session Tracking** - Unique IDs for each shell session
+✅ **Session Notes** - Free-text notes attached to sessions for report writing
 ✅ **Command History** - Complete command logs with timestamps
-✅ **Transfer Logging** - All file operations recorded
+✅ **Transfer Logging** - All file operations recorded (SCP and HTTP server)
 ✅ **User Tracking** - Per-user session management
 
 ### Access Control
@@ -297,8 +298,8 @@ logs/
 
 ## ✅ Version Information
 
-- **Framework Version**: 1.0.0
-- **Last Updated**: 2026-02-25
+- **Framework Version**: 1.1.0
+- **Last Updated**: 2026-02-28
 - **Security Review**: Pending
 - **Compliance Check**: Pending
 

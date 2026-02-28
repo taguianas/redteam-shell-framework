@@ -204,6 +204,114 @@ validate_port() {
 }
 
 ################################################################################
+# IP detection
+################################################################################
+
+get_local_ip() {
+    local ip
+    # Try ip route (Linux)
+    ip=$(ip route get 1.1.1.1 2>/dev/null | grep -oP 'src \K[^\s]+' | head -1)
+    # Fallback: hostname -I
+    if [[ -z "$ip" ]]; then
+        ip=$(hostname -I 2>/dev/null | awk '{print $1}')
+    fi
+    # Fallback: ifconfig
+    if [[ -z "$ip" ]]; then
+        ip=$(ifconfig 2>/dev/null | grep -oP 'inet \K[0-9.]+' | grep -v '127.0.0.1' | head -1)
+    fi
+    echo "${ip:-127.0.0.1}"
+}
+
+prompt_local_ip() {
+    local detected
+    detected=$(get_local_ip)
+    echo -n "Attacker IP [${detected}]: " >&2
+    local ip
+    read -r ip
+    echo "${ip:-$detected}"
+}
+
+################################################################################
+# Session notes
+################################################################################
+
+add_session_note() {
+    local session_id="$1"
+    local timestamp
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    local notes_file="${SESSION_DIR}/${session_id}.notes"
+    mkdir -p "${SESSION_DIR}"
+    echo -n "Note: "
+    local note
+    read -r note
+    if [[ -n "$note" ]]; then
+        echo "[${timestamp}] ${note}" >> "$notes_file"
+        success_msg "Note saved."
+    else
+        warn_msg "Empty note, nothing saved."
+    fi
+}
+
+view_session_notes() {
+    local session_id="$1"
+    local notes_file="${SESSION_DIR}/${session_id}.notes"
+    echo ""
+    echo "$(color_cyan "═══ NOTES: ${session_id} ═══")"
+    echo ""
+    if [[ -f "$notes_file" ]]; then
+        cat "$notes_file"
+    else
+        info_msg "No notes for this session."
+    fi
+    echo ""
+    sleep 2
+}
+
+session_notes_menu() {
+    echo ""
+    echo "$(color_cyan '═══ SESSION NOTES ═══')"
+    echo ""
+    if [[ ! -d "${SESSION_DIR}" ]] || [[ -z $(ls -1 "${SESSION_DIR}" 2>/dev/null | grep '.json$') ]]; then
+        info_msg "No sessions found."
+        echo ""
+        sleep 2
+        return
+    fi
+
+    echo "Available sessions:"
+    echo ""
+    local i=1
+    local -a session_ids
+    for f in "${SESSION_DIR}"/*.json; do
+        [[ -f "$f" ]] || continue
+        local sid
+        sid=$(basename "$f" .json)
+        session_ids+=("$sid")
+        echo "  $i. $sid"
+        (( i++ ))
+    done
+    echo ""
+    echo -n "Select session number (or 0 to cancel): "
+    local sel
+    read -r sel
+    if [[ ! "$sel" =~ ^[0-9]+$ ]] || (( sel == 0 )) || (( sel > ${#session_ids[@]} )); then
+        return
+    fi
+    local chosen="${session_ids[$((sel-1))]}"
+
+    echo ""
+    echo "  1. Add note"
+    echo "  2. View notes"
+    echo -n "Select: "
+    local action
+    read -r action
+    case "$action" in
+        1) add_session_note "$chosen" ;;
+        2) view_session_notes "$chosen" ;;
+    esac
+}
+
+################################################################################
 # File operations
 ################################################################################
 

@@ -6,14 +6,17 @@ Common issues and solutions for the Red Team Shell Framework.
 
 ## Table of Contents
 
-1. [Installation Issues](#installation-issues)
-2. [Connectivity Problems](#connectivity-problems)
-3. [Encryption Issues](#encryption-issues)
-4. [File Transfer Problems](#file-transfer-problems)
-5. [Payload Issues](#payload-issues)
-6. [PTY Upgrade Problems](#pty-upgrade-problems)
-7. [Performance & Stability](#performance--stability)
-8. [Advanced Debugging](#advanced-debugging)
+1. [Startup Warnings](#startup-warnings)
+2. [Installation Issues](#installation-issues)
+3. [Connectivity Problems](#connectivity-problems)
+4. [Netcat Variant Issues](#netcat-variant-issues)
+5. [Encryption Issues](#encryption-issues)
+6. [File Transfer Issues (HTTP Server)](#file-transfer-issues-http-server)
+7. [File Transfer Problems](#file-transfer-problems)
+8. [Payload Issues](#payload-issues)
+9. [PTY Upgrade Problems](#pty-upgrade-problems)
+10. [Performance & Stability](#performance--stability)
+11. [Advanced Debugging](#advanced-debugging)
 
 ---
 
@@ -80,6 +83,32 @@ pwd
 # Verify no path issues
 file config.sh
 # Should show: POSIX shell script
+```
+
+---
+
+## Startup Warnings
+
+### Issue: Missing tool warnings appear at startup
+
+**Symptom:**
+```
+[!] Missing optional tools — some features may not work:
+    ⚠  socat
+    ⚠  python3
+```
+
+**Solution:**
+
+The dependency check runs once at startup and lists any tools that are absent. Missing tools only disable the specific features that need them — the rest of the framework works normally.
+
+Install what you need:
+```bash
+# Debian / Ubuntu
+sudo apt install -y socat python3 rlwrap
+
+# RHEL / CentOS
+sudo yum install -y socat python3 rlwrap
 ```
 
 ---
@@ -416,6 +445,109 @@ Got: xyz789uvw123...
 
 ---
 
+## Netcat Variant Issues
+
+### Issue: Listener fails with "invalid option" or wrong flags
+
+**Symptom:**
+```
+nc: invalid option -- 'p'
+```
+or the listener starts but immediately exits.
+
+**Cause:** Different netcat variants use different flags. OpenBSD `nc` (the default on modern Ubuntu/Debian) doesn't use `-p` for the port, while traditional `nc` does. The framework auto-detects the variant, but if detection fails you may see flag errors.
+
+**Solution:**
+
+1. **Check which nc is installed:**
+   ```bash
+   nc -h 2>&1 | head -5
+   which nc ncat netcat
+   ```
+
+2. **Install a variant with full support:**
+   ```bash
+   # Traditional netcat (supports -e)
+   sudo apt install netcat-traditional
+
+   # Or nmap's ncat (supports --exec)
+   sudo apt install ncat
+   ```
+
+3. **For bind listeners on OpenBSD nc (no -e):**
+   The framework automatically falls back to a `mkfifo` workaround, so bind listeners still work.
+
+---
+
+### Issue: Auto-detected IP is wrong
+
+**Symptom:**
+The IP shown in brackets is a VPN address, Docker bridge, or wrong interface.
+
+**Solution:**
+
+Just type the correct IP when prompted — the detected value is only a default and can always be overridden. Press Enter only if the shown IP is correct.
+
+To check your interfaces:
+```bash
+ip addr show
+# or
+ifconfig
+```
+
+---
+
+## File Transfer Issues (HTTP Server)
+
+### Issue: HTTP server won't start
+
+**Symptom:**
+```
+Error: python3 not found. Install python3 to use this feature.
+```
+
+**Solution:**
+```bash
+# Debian / Ubuntu
+sudo apt install python3
+
+# RHEL / CentOS
+sudo yum install python3
+
+# macOS
+brew install python3
+```
+
+---
+
+### Issue: Target can't reach the HTTP server
+
+**Symptom:** `wget` or `curl` on the target times out.
+
+**Solution:**
+
+1. **Verify the correct IP was shown** — the framework auto-detects your IP but it may be wrong if you have multiple interfaces. Check with `ip addr` and restart the server if needed.
+
+2. **Check firewall:**
+   ```bash
+   # Allow the port
+   sudo ufw allow 8000
+   # or
+   sudo iptables -I INPUT -p tcp --dport 8000 -j ACCEPT
+   ```
+
+3. **Confirm the server is listening:**
+   ```bash
+   ss -ln | grep 8000
+   ```
+
+4. **Test locally first:**
+   ```bash
+   curl http://127.0.0.1:8000/
+   ```
+
+---
+
 ## Payload Issues
 
 ### Issue: Payload not executing
@@ -427,9 +559,9 @@ Got: xyz789uvw123...
 
 **Solution:**
 
-1. **Verify shell available:**
+1. **Verify the required interpreter is available on the target:**
    ```bash
-   which bash python python3 nc
+   which bash python python3 perl ruby php nc
    ```
 
 2. **Check payload syntax:**
@@ -713,6 +845,9 @@ strace -o trace.log ./shellmaster.sh
 | `Connection refused` | Listener not running | Start listener first |
 | `SSL error` | Certificate issue | Regenerate certificate |
 | `Timeout` | Network/firewall issue | Check connectivity and firewall |
+| `nc: invalid option -- 'p'` | OpenBSD nc doesn't use `-p` | Framework handles this automatically; reinstall `netcat-traditional` if needed |
+| `python3 not found` | python3 not installed | `apt install python3` — required for HTTP server and PTY upgrade |
+| `socat is not installed` | socat not installed | `apt install socat` — required for Encryption and Relay modules |
 
 ---
 

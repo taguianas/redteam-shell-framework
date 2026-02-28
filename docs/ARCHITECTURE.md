@@ -32,13 +32,13 @@ RedTeam Shell Framework follows a **controller–module** pattern. The main cont
 
 | File | Role |
 |------|------|
-| `shellmaster.sh` | Entry point — loads modules, renders menu, routes selections |
+| `shellmaster.sh` | Entry point — loads modules, runs dependency check, renders menu, routes selections |
 | `config.sh` | Exports all global variables and creates runtime directories |
-| `utils.sh` | Provides colors, message helpers, validation, and JSON logging |
-| `modules/listeners.sh` | Reverse & bind listener management |
-| `modules/shells.sh` | Payload generator for Bash, PowerShell, Python |
+| `utils.sh` | Colors, message helpers, validation, JSON logging, IP detection, session notes |
+| `modules/listeners.sh` | Reverse & bind listener management with auto-detected nc variant |
+| `modules/shells.sh` | Payload generator for Bash, PowerShell, Python, Perl, Ruby, PHP |
 | `modules/encrypt.sh` | SSL/TLS listener and cert generation via socat/openssl |
-| `modules/transfer.sh` | SCP file upload/download and checksum verification |
+| `modules/transfer.sh` | SCP upload/download, HTTP file server, checksum verification |
 | `modules/relay.sh` | socat port relays and SSH tunnel management |
 | `modules/upgrade.sh` | PTY upgrade and environment stabilization guides |
 
@@ -49,7 +49,7 @@ RedTeam Shell Framework follows a **controller–module** pattern. The main cont
 ```
 1. shellmaster.sh starts
    │
-   ├─ Source utils.sh        (colors, helpers, logging)
+   ├─ Source utils.sh        (colors, helpers, logging, IP detection, session notes)
    ├─ Source config.sh       (paths, init_framework → mkdir + touch log)
    │
    ├─ safe_source listeners.sh
@@ -57,9 +57,11 @@ RedTeam Shell Framework follows a **controller–module** pattern. The main cont
    ├─ safe_source encrypt.sh
    ├─ safe_source transfer.sh
    ├─ safe_source relay.sh
-   └─ safe_source upgrade.sh
-         │
-         └─ Enter while true loop → main_menu()
+   ├─ safe_source upgrade.sh
+   │
+   ├─ check_dependencies()   (warns if socat, nc, python3, rlwrap, openssl, or scp are missing)
+   │
+   └─ Enter while true loop → main_menu()
 ```
 
 `safe_source()` silently skips a module if it cannot be loaded, preventing a crash on startup.
@@ -162,14 +164,30 @@ logs/sessions/shell_1708867275_28340.log    – events (started, ended)
 ```
 User selects "Listeners" → "Reverse Listener"
   │
-  ├─ Prompt: port, rlwrap preference
+  ├─ Prompt: listen IP, port, rlwrap preference
   ├─ validate_port() check
+  ├─ detect_nc() → returns binary + flags + exec-support for installed variant
   ├─ generate_session_id()
   ├─ create_session() → writes .json to logs/sessions/
   ├─ log_session() → listener_started event
+  ├─ get_local_ip() → show connect-back command with detected IP
   ├─ Build nc/ncat command (+ rlwrap if requested)
   ├─ eval "$cmd"           ← blocking — waits for connection
-  └─ log_session() → listener_ended event
+  ├─ log_session() → listener_ended event
+  └─ Prompt: "Add a note to this session? [y/n]"
+       └─ add_session_note() → appends to logs/sessions/<id>.notes
+```
+
+## Data Flow: Session Notes
+
+```
+Notes are stored in: logs/sessions/<session_id>.notes
+One timestamped line per note.
+
+Access points:
+  1. Automatically prompted after a reverse listener session ends
+  2. Listeners menu → 5 (Session Notes) → session_notes_menu()
+       └─ Lists all session .json files → pick one → Add / View
 ```
 
 ---

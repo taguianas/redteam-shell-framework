@@ -11,18 +11,20 @@ transfer_menu() {
         echo "TRANSFER MENU"
         echo "1. Upload File (SCP)"
         echo "2. Download File (SCP)"
-        echo "3. Verify Checksum"
-        echo "4. View History"
-        echo "5. Back"
+        echo "3. Serve Files (HTTP Server)"
+        echo "4. Verify Checksum"
+        echo "5. View History"
+        echo "6. Back"
         echo ""
         read -p "Select: " choice
-        
+
         case "$choice" in
             1) upload_file ;;
             2) download_file ;;
-            3) verify_checksum ;;
-            4) view_transfer_history ;;
-            5) break ;;
+            3) serve_http ;;
+            4) verify_checksum ;;
+            5) view_transfer_history ;;
+            6) break ;;
             *) echo "Invalid"; sleep 1 ;;
         esac
     done
@@ -57,6 +59,7 @@ upload_file() {
     if [[ $? -eq 0 ]]; then
         echo ""
         echo "Upload successful."
+        log_info "SCP upload: $local_file → ${remote_user}@${remote_host}:${remote_path}"
     else
         echo ""
         echo "Upload failed."
@@ -86,11 +89,63 @@ download_file() {
     if [[ $? -eq 0 ]]; then
         echo ""
         echo "Download successful."
+        log_info "SCP download: ${remote_user}@${remote_host}:${remote_file} → ${local_path}"
     else
         echo ""
         echo "Download failed."
     fi
     sleep 2
+}
+
+serve_http() {
+    echo ""
+    echo "=== HTTP FILE SERVER ==="
+    echo ""
+
+    if ! command -v python3 &>/dev/null; then
+        echo "Error: python3 not found. Install python3 to use this feature."
+        sleep 3
+        return 1
+    fi
+
+    echo -n "Directory to serve [./]: "
+    local serve_dir
+    read -r serve_dir
+    serve_dir="${serve_dir:-./}"
+
+    if [[ ! -d "$serve_dir" ]]; then
+        echo "Error: Directory not found: $serve_dir"
+        sleep 2
+        return 1
+    fi
+
+    echo -n "Port [8000]: "
+    local serve_port
+    read -r serve_port
+    serve_port="${serve_port:-8000}"
+
+    if ! validate_port "$serve_port"; then
+        echo "Error: Invalid port"
+        sleep 2
+        return 1
+    fi
+
+    local detected_ip
+    detected_ip=$(get_local_ip)
+
+    echo ""
+    echo "Serving: $serve_dir"
+    echo ""
+    echo "Download files from target with:"
+    echo "  wget http://${detected_ip}:${serve_port}/filename"
+    echo "  curl http://${detected_ip}:${serve_port}/filename -O filename"
+    echo ""
+    echo "Press Ctrl+C to stop the server."
+    echo ""
+
+    log_info "HTTP server started on ${detected_ip}:${serve_port} serving ${serve_dir}"
+
+    cd "$serve_dir" && python3 -m http.server "$serve_port"
 }
 
 verify_checksum() {
@@ -120,7 +175,7 @@ view_transfer_history() {
 
     if [[ -f "${LOG_FILE}" ]]; then
         local history
-        history=$(grep -i "transfer\|upload\|download\|scp" "${LOG_FILE}" 2>/dev/null | tail -20)
+        history=$(grep -i "transfer\|upload\|download\|scp\|http server" "${LOG_FILE}" 2>/dev/null | tail -20)
         if [[ -n "$history" ]]; then
             echo "$history"
         else
@@ -132,5 +187,3 @@ view_transfer_history() {
     echo ""
     sleep 3
 }
-
-
