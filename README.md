@@ -1,4 +1,4 @@
-# RedTeam Shell Framework
+# 🧨 RedTeam Shell Framework
 
 A modular, lightweight Bash framework for managing reverse shells, encrypted listeners, payload generation, file transfers, and network pivoting — built for authorized penetration testing and security research.
 
