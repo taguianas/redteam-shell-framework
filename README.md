@@ -126,8 +126,7 @@ sudo yum install -y ncat socat openssl rlwrap openssh-clients python3
 ```bash
 git clone https://github.com/taguianas/redteam-shell-framework.git
 cd redteam-shell-framework
-chmod +x shellmaster.sh modules/*.sh
-./shellmaster.sh
+bash shellmaster.sh
 ```
 
 ### Option 2 — wget (no Git required)
@@ -136,8 +135,7 @@ chmod +x shellmaster.sh modules/*.sh
 wget https://github.com/taguianas/redteam-shell-framework/archive/refs/heads/main.zip
 unzip main.zip
 cd redteam-shell-framework-main
-chmod +x shellmaster.sh modules/*.sh
-./shellmaster.sh
+bash shellmaster.sh
 ```
 
 ### Option 3 — curl (no Git required)
@@ -146,8 +144,7 @@ chmod +x shellmaster.sh modules/*.sh
 curl -L https://github.com/taguianas/redteam-shell-framework/archive/refs/heads/main.zip -o framework.zip
 unzip framework.zip
 cd redteam-shell-framework-main
-chmod +x shellmaster.sh modules/*.sh
-./shellmaster.sh
+bash shellmaster.sh
 ```
 
 > `git` is only needed to clone the repository. The framework itself depends only on standard Bash and Unix tools.
@@ -168,7 +165,7 @@ The framework requires a **Unix Bash environment**. On Windows, use **Git Bash**
 Run the main controller from the project root:
 
 ```bash
-./shellmaster.sh
+bash shellmaster.sh
 ```
 
 The interactive menu will load:
